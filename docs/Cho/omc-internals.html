@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="default">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oh-my-claudecode (OMC) 내부 구조</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── 루트 스케일링 ── */
+    html { font-size: clamp(12px, 1.2vw, 18px); }
+    html, body { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; }
+
+    /* ── CSS 변수 기본(default) ── */
+    :root {
+      --bg: #ffffff; --bg-alt: #f8fafc; --fg: #0f172a; --fg-muted: #64748b;
+      --accent: #2563eb; --accent-light: #dbeafe; --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --font-sans: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --size-title: clamp(2.8rem,6vw,5rem); --size-h2: clamp(2rem,4vw,3.2rem);
+      --size-h3: clamp(1.5rem,2.8vw,2.4rem); --size-body: clamp(1.1rem,1.8vw,1.5rem);
+      --size-small: clamp(0.9rem,1.4vw,1.2rem); --pad: clamp(2rem,5vw,4rem); --pad-sm: clamp(1rem,2.5vw,2rem);
+      --radius: 0.5rem;
+    }
+    [data-theme="dark"] {
+      --bg:#1e1e2e; --bg-alt:#181825; --fg:#cdd6f4; --fg-muted:#a6adc8;
+      --accent:#a78bfa; --accent-light:#3b2f6e; --border:#313244;
+      --code-bg:#181825;
+    }
+    [data-theme="minimal"] {
+      --bg:#fff; --bg-alt:#fff; --fg:#000; --fg-muted:#555;
+      --accent:#000; --accent-light:#f0f0f0; --border:#ddd;
+      --code-bg:#f8f8f8; --font-sans:'Helvetica Neue',Arial,sans-serif; --radius:0;
+    }
+    [data-theme="corporate"] {
+      --bg:#f4f6f9; --bg-alt:#e8ecf2; --fg:#1a2332; --fg-muted:#5a6a7e;
+      --accent:#1e3a5f; --accent-light:#d0dce8; --border:#c8d3df;
+      --code-bg:#edf0f4; --header-bg:#1e3a5f; --header-fg:#ffffff;
+    }
+
+    /* ── Slideshow 기본 ── */
+    .slideshow { position:relative; width:100vw; height:100vh; overflow:hidden; }
+
+    /* ── body 배경 그라디언트 (glassmorphism) ── */
+    body { position:relative; }
+    body::before { content:''; position:fixed; inset:0; z-index:-1; animation:bgShift 18s ease-in-out infinite alternate; }
+    @keyframes bgShift { 0%{filter:hue-rotate(0deg) brightness(1);} 50%{filter:hue-rotate(15deg) brightness(1.05);} 100%{filter:hue-rotate(-10deg) brightness(0.97);} }
+    [data-theme="default"] body::before { background: radial-gradient(ellipse at 20% 20%,#a78bfa 0%,transparent 50%), radial-gradient(ellipse at 80% 10%,#60a5fa 0%,transparent 45%), radial-gradient(ellipse at 60% 80%,#34d399 0%,transparent 50%), radial-gradient(ellipse at 10% 80%,#f472b6 0%,transparent 45%), #e0e7ff; }
+    [data-theme="dark"] body::before { background: radial-gradient(ellipse at 20% 20%,#7c3aed 0%,transparent 50%), radial-gradient(ellipse at 80% 15%,#1d4ed8 0%,transparent 45%), radial-gradient(ellipse at 55% 85%,#047857 0%,transparent 50%), radial-gradient(ellipse at 10% 75%,#9d174d 0%,transparent 45%), #0f0f1a; }
+    [data-theme="minimal"] body::before { background: radial-gradient(ellipse at 30% 30%,#d1d5db 0%,transparent 50%), radial-gradient(ellipse at 70% 70%,#e5e7eb 0%,transparent 50%), #f9fafb; }
+    [data-theme="corporate"] body::before { background: radial-gradient(ellipse at 15% 25%,#1e3a8a 0%,transparent 50%), radial-gradient(ellipse at 85% 15%,#0f766e 0%,transparent 45%), radial-gradient(ellipse at 60% 80%,#1e40af 0%,transparent 50%), #0f172a; }
+
+    /* ── 공통 슬라이드 ── */
+    .slide {
+      display:none; position:absolute; top:0; left:0; width:100vw; height:100vh;
+      flex-direction:column;
+      padding:clamp(1.5rem,4vw,4rem);
+      box-sizing:border-box;
+      background:rgba(255,255,255,0.12);
+      backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%);
+      border:1px solid rgba(255,255,255,0.25);
+      color:var(--fg); font-family:var(--font-sans);
+    }
+    .slide.active { display:flex; }
+    [data-theme="dark"] .slide { background:rgba(15,15,30,0.55); border-color:rgba(255,255,255,0.10); }
+    [data-theme="minimal"] .slide { background:rgba(255,255,255,0.60); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-color:rgba(0,0,0,0.08); }
+    [data-theme="corporate"] .slide { background:rgba(15,23,42,0.65); border-color:rgba(255,255,255,0.10); }
+    .slide[data-type="content"] { overflow-y:auto; }
+    .slide-counter { display:none; }
+
+    /* ── cover ── */
+    .slide[data-type="cover"] { justify-content:center; align-items:center; text-align:center; }
+    .cover-inner { background:rgba(255,255,255,0.15); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.30); border-radius:1.5rem; padding:clamp(2rem,4vw,4rem) clamp(2.5rem,5vw,5rem); box-shadow:0 8px 32px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.4); text-align:center; max-width:800px; width:90%; }
+    .slide[data-type="cover"] .cover-eyebrow { font-size:var(--size-small); font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--accent); margin-bottom:1rem; }
+    .slide[data-type="cover"] h1 { font-size:var(--size-title); font-weight:800; line-height:1.1; color:var(--fg); margin-bottom:1rem; }
+    .slide[data-type="cover"] .subtitle { font-size:var(--size-h3); font-weight:400; color:var(--fg-muted); margin-bottom:2rem; }
+    .slide[data-type="cover"] .meta { font-size:var(--size-small); color:var(--fg-muted); display:flex; gap:1.5rem; justify-content:center; }
+    [data-theme="corporate"] .slide[data-type="cover"] h1,
+    [data-theme="corporate"] .slide[data-type="cover"] .subtitle,
+    [data-theme="corporate"] .slide[data-type="cover"] .meta,
+    [data-theme="corporate"] .slide[data-type="cover"] .cover-eyebrow { color:rgba(255,255,255,.9); }
+    [data-theme="default"] .slide[data-type="cover"] .cover-eyebrow { color:#2563eb; }
+
+    /* ── toc ── */
+    .slide[data-type="toc"] { justify-content:center; align-items:flex-start; }
+    .slide[data-type="toc"] h2 { font-size:var(--size-h2); font-weight:700; color:var(--fg); margin-bottom:2rem; padding-bottom:.75rem; border-bottom:2px solid var(--accent); width:100%; }
+    .slide[data-type="toc"] ol { list-style:none; counter-reset:toc; display:flex; flex-direction:column; gap:.4rem; max-width:700px; width:100%; }
+    .slide[data-type="toc"] ol li { counter-increment:toc; display:flex; align-items:center; gap:1rem; font-size:var(--size-body); font-weight:500; color:#fff; background:rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.20); border-radius:.5rem; padding:.6rem 1rem; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; }
+    .slide[data-type="toc"] ol li::before { content:counter(toc,decimal-leading-zero); font-size:var(--size-small); font-weight:700; color:rgba(255,255,255,0.7); min-width:2em; }
+    .slide[data-type="toc"] ol li:hover { background:rgba(255,255,255,0.22); color:#fff; }
+    [data-theme="minimal"] .slide[data-type="toc"] ol li { color:#111827; background:rgba(0,0,0,0.05); border-color:rgba(0,0,0,0.10); }
+    [data-theme="default"] .slide[data-type="toc"] ol li { color:#1e293b; }
+    [data-theme="default"] .slide[data-type="toc"] h2 { color:#0f172a; border-bottom-color:rgba(15,23,42,0.25); }
+    [data-theme="default"] .slide[data-type="toc"] ol li::before { color:rgba(37,99,235,0.8); }
+    [data-theme="default"] .slide[data-type="toc"] ol li:hover { color:#1e40af; background:rgba(37,99,235,0.12); }
+
+    /* ── divider ── */
+    .slide[data-type="divider"] { justify-content:center; align-items:center; text-align:center; background:linear-gradient(135deg,rgba(99,102,241,0.7) 0%,rgba(139,92,246,0.7) 100%); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-color:rgba(255,255,255,0.20); }
+    .slide[data-type="divider"] .divider-number { font-size:var(--size-small); font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:1rem; }
+    .slide[data-type="divider"] h2 { font-size:clamp(2.5rem,6vw,5rem); font-weight:800; color:#fff; line-height:1.1; }
+    .slide[data-type="divider"] .divider-sub { font-size:var(--size-body); color:rgba(255,255,255,.75); margin-top:1.5rem; }
+    [data-theme="dark"] .slide[data-type="divider"] { background:linear-gradient(135deg,rgba(109,40,217,0.75) 0%,rgba(79,70,229,0.75) 100%); }
+    [data-theme="minimal"] .slide[data-type="divider"] { background:linear-gradient(135deg,rgba(55,65,81,0.80) 0%,rgba(17,24,39,0.75) 100%); }
+    [data-theme="corporate"] .slide[data-type="divider"] { background:linear-gradient(135deg,rgba(30,58,138,0.85) 0%,rgba(15,118,110,0.70) 100%); }
+
+    /* ── content ── */
+    .slide[data-type="content"] { justify-content:flex-start; overflow-y:auto; }
+    .slide[data-type="content"] h3 { font-size:var(--size-h3); font-weight:700; color:#fff; margin-bottom:1.5rem; padding-bottom:.75rem; border-bottom:2px solid rgba(255,255,255,0.35); width:100%; text-shadow:0 1px 4px rgba(0,0,0,0.15); }
+    [data-theme="minimal"] .slide[data-type="content"] h3 { color:#111827; border-bottom-color:#d1d5db; text-shadow:none; }
+    [data-theme="corporate"] .slide[data-type="content"] h3 { background:var(--accent); color:#fff; padding:.75rem var(--pad-sm); border-bottom:none; margin:calc(-1*var(--pad)) calc(-1*var(--pad)) 1.5rem; width:calc(100% + 2*var(--pad)); font-size:var(--size-body); font-weight:600; }
+    [data-theme="corporate"] .slide[data-type="content"]::before { content:''; display:block; height:4px; background:var(--accent); position:absolute; top:0; left:0; right:0; }
+    .slide[data-type="content"] p { font-size:var(--size-body); font-weight:400; line-height:1.7; color:rgba(255,255,255,0.90); margin-bottom:1rem; max-width:70ch; }
+    [data-theme="minimal"] .slide[data-type="content"] p { color:#111827; }
+    .slide[data-type="content"] ul, .slide[data-type="content"] ol { padding-left:1.5rem; display:flex; flex-direction:column; gap:.5rem; max-width:70ch; }
+    .slide[data-type="content"] li { font-size:var(--size-body); font-weight:400; line-height:1.6; color:rgba(255,255,255,0.85); }
+    [data-theme="minimal"] .slide[data-type="content"] li { color:#111827; }
+    .slide[data-type="content"] li::marker { color:rgba(255,255,255,0.6); }
+    .slide[data-type="content"] strong { font-weight:600; }
+    .slide[data-type="content"] code { font-family:var(--font-mono); font-size:.9em; background:rgba(0,0,0,0.20); border:1px solid rgba(255,255,255,0.20); color:#e2e8f0; padding:.15em .4em; border-radius:calc(var(--radius)*.5); }
+    [data-theme="minimal"] .slide[data-type="content"] code { background:rgba(0,0,0,0.07); border-color:rgba(0,0,0,0.12); color:#1a1a1a; }
+    .slide[data-type="content"] pre { background:rgba(0,0,0,0.25); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.15); border-radius:.75rem; padding:1.25rem; overflow-x:auto; font-family:var(--font-mono); font-size:.85em; line-height:1.6; width:100%; margin:1rem 0; }
+    .slide[data-type="content"] pre code { background:none; border:none; padding:0; color:#e2e8f0; }
+    .slide[data-type="content"] blockquote { background:rgba(255,255,255,0.15); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-left:3px solid rgba(255,255,255,0.60); border-radius:0 .5rem .5rem 0; padding:.75rem 1.25rem; font-style:italic; color:rgba(255,255,255,0.80); margin:1rem 0; }
+    .slide[data-type="content"] img { max-width:100%; height:auto; border-radius:var(--radius); border:1px solid var(--border); }
+    .slide[data-type="content"] table { width:100%; border-collapse:collapse; font-size:var(--size-small); margin:1rem 0; background:rgba(255,255,255,0.10); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.20); border-radius:.75rem; overflow:hidden; }
+    .slide[data-type="content"] th { background:rgba(99,102,241,0.45); color:#fff; padding:.6rem .9rem; text-align:left; font-weight:600; border-bottom:1px solid rgba(255,255,255,0.20); }
+    .slide[data-type="content"] td { padding:.5rem .9rem; border-bottom:1px solid rgba(255,255,255,0.10); color:rgba(255,255,255,0.85); }
+    .slide[data-type="content"] tr:nth-child(even) td { background:rgba(255,255,255,0.08); }
+    [data-theme="minimal"] .slide[data-type="content"] th { background:rgba(55,65,81,0.80); }
+    [data-theme="minimal"] .slide[data-type="content"] td { color:#111827; border-bottom-color:rgba(0,0,0,0.08); }
+    [data-theme="default"] .slide[data-type="content"] h3 { color:#0f172a; border-bottom-color:rgba(15,23,42,0.25); text-shadow:none; }
+    [data-theme="default"] .slide[data-type="content"] p,
+    [data-theme="default"] .slide[data-type="content"] li { color:#1e293b; }
+    [data-theme="default"] .slide[data-type="content"] td { color:#1e293b; }
+    [data-theme="default"] .slide[data-type="content"] code { background:rgba(0,0,0,0.08); border-color:rgba(0,0,0,0.15); color:#1e293b; }
+    [data-theme="default"] .slide[data-type="content"] th { background:rgba(37,99,235,0.70); color:#fff; }
+    [data-theme="default"] .slide[data-type="content"] tr:nth-child(even) td { background:rgba(0,0,0,0.04); }
+
+    /* ── closing ── */
+    .slide[data-type="closing"] { justify-content:center; align-items:center; }
+    .closing-card { background:rgba(255,255,255,0.15); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.30); border-radius:1.5rem; padding:clamp(2rem,4vw,3.5rem) clamp(2.5rem,5vw,4.5rem); box-shadow:0 8px 32px rgba(0,0,0,0.12); text-align:center; }
+    .slide[data-type="closing"] .closing-icon { font-size:3rem; margin-bottom:1.5rem; opacity:.6; }
+    .slide[data-type="closing"] h2 { font-size:var(--size-h2); font-weight:800; color:var(--fg); margin-bottom:1rem; }
+    .slide[data-type="closing"] .closing-message { font-size:var(--size-body); color:var(--fg-muted); max-width:40ch; line-height:1.7; margin-bottom:2rem; }
+    .slide[data-type="closing"] .closing-contact { display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; font-size:var(--size-small); color:var(--accent); }
+    [data-theme="corporate"] .slide[data-type="closing"] h2,
+    [data-theme="corporate"] .slide[data-type="closing"] .closing-message { color:rgba(255,255,255,.9); }
+    [data-theme="corporate"] .slide[data-type="closing"] .closing-contact { color:#7eb8e8; }
+
+    /* ── 구조형 레이아웃 ── */
+    .slide[data-layout="title-cover"] { justify-content:center; align-items:center; text-align:center; }
+    .slide[data-layout="section-divider"] { justify-content:center; align-items:center; text-align:center; }
+    .slide[data-layout="agenda"] { justify-content:center; align-items:flex-start; }
+    .slide[data-layout="end"] { justify-content:center; align-items:center; text-align:center; }
+
+    /* ── 콘텐츠형 레이아웃 ── */
+    .slide[data-layout="default"] { justify-content:flex-start; align-items:flex-start; }
+    .slide[data-layout="default"] h3 { width:100%; margin-bottom:1.5rem; }
+    .slide[data-layout="list"] { justify-content:flex-start; align-items:flex-start; }
+    .slide[data-layout="list"] ul, .slide[data-layout="list"] ol { padding-left:1.5rem; display:flex; flex-direction:column; gap:.75rem; max-width:70ch; }
+    .slide[data-layout="list"] li { font-size:var(--size-body); line-height:1.6; }
+
+    .slide[data-layout="table-data"] { justify-content:flex-start; padding:var(--pad-sm) var(--pad); }
+    .slide[data-layout="table-data"] h3 { font-size:var(--size-body); margin-bottom:.75rem; }
+    .slide[data-layout="table-data"] table { width:100%; border-collapse:collapse; font-size:calc(var(--size-small)*.95); }
+    .slide[data-layout="table-data"] th { background:var(--accent); color:#fff; padding:.4rem .6rem; text-align:left; font-weight:600; font-size:calc(var(--size-small)*.9); }
+    .slide[data-layout="table-data"] td { padding:.35rem .6rem; border-bottom:1px solid var(--border); }
+    .slide[data-layout="table-data"] tr:nth-child(even) td { background:var(--bg-alt); }
+
+    .slide[data-layout="code-focus"] { justify-content:flex-start; padding:var(--pad-sm) var(--pad); }
+    .slide[data-layout="code-focus"] h3 { font-size:var(--size-body); margin-bottom:.5rem; }
+    .slide[data-layout="code-focus"] pre { flex:1; width:100%; overflow:auto; font-size:clamp(.7rem,1.5vw,.95rem); line-height:1.5; margin:0; }
+
+    /* ── 다이어그램형 레이아웃 ── */
+    .slide[data-layout="diagram"] { justify-content:flex-start; align-items:center; padding:var(--pad-sm) var(--pad); }
+    .slide[data-layout="diagram"] h3 { font-size:var(--size-body); margin-bottom:.5rem; width:100%; }
+    .slide[data-layout="diagram"] .diagram-area { flex:1; width:100%; display:flex; justify-content:center; align-items:center; min-height:0; overflow:auto; }
+
+    /* ── Inline Diagram CSS ── */
+    .diagram-container { display:flex; flex-direction:column; align-items:center; gap:1.5rem; width:100%; padding:1rem 0; }
+    .diagram-flow-lr { display:flex; flex-direction:row; align-items:center; flex-wrap:wrap; gap:0.5rem; justify-content:center; }
+    .diagram-flow-tb { display:flex; flex-direction:column; align-items:center; gap:0.5rem; }
+    .diagram-node { padding:0.6rem 1.1rem; border-radius:0.5rem; background:rgba(255,255,255,0.18); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.30); color:#fff; font-size:0.85rem; font-family:var(--font-sans); text-align:center; min-width:7rem; line-height:1.4; white-space:pre-line; box-shadow:0 4px 12px rgba(0,0,0,0.10); }
+    .diagram-node.node-highlight { background:rgba(99,102,241,0.55); border-color:rgba(99,102,241,0.70); }
+    .diagram-node.node-gold   { background:rgba(255,211,0,0.30);   border-color:rgba(255,211,0,0.50); }
+    .diagram-node.node-green  { background:rgba(52,211,153,0.25);  border-color:rgba(52,211,153,0.45); }
+    .diagram-node.node-blue   { background:rgba(96,165,250,0.25);  border-color:rgba(96,165,250,0.45); }
+    .diagram-node.node-purple { background:rgba(167,139,250,0.30); border-color:rgba(167,139,250,0.50); }
+    .diagram-arrow { color:rgba(255,255,255,0.60); font-size:1.2rem; line-height:1; user-select:none; }
+    .diagram-subgraph { border:2px dashed rgba(255,255,255,0.20); border-radius:0.75rem; padding:1rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem; background:rgba(255,255,255,0.06); }
+    .diagram-subgraph-label { font-size:0.7rem; font-weight:600; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.25rem; }
+    .diagram-branch { display:flex; flex-direction:row; align-items:flex-start; gap:1rem; justify-content:center; }
+    [data-theme="minimal"] .diagram-node { color:#1a1a1a; border-color:rgba(0,0,0,0.15); background:rgba(255,255,255,0.50); }
+    [data-theme="minimal"] .diagram-arrow { color:#6b7280; }
+    [data-theme="default"] .diagram-node { color:#1e293b; }
+    [data-theme="default"] .diagram-arrow { color:rgba(37,99,235,0.6); }
+
+    /* ── 모델 카드 ── */
+    .model-cards { display:flex; gap:1.5rem; width:100%; justify-content:center; flex-wrap:wrap; margin-top:1rem; }
+    .model-card { flex:1; min-width:200px; max-width:300px; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.25); border-radius:1rem; padding:1.5rem; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,0.08); }
+    .model-card .model-icon { font-size:2.5rem; margin-bottom:0.75rem; }
+    .model-card .model-name { font-size:var(--size-h3); font-weight:800; margin-bottom:0.5rem; }
+    .model-card .model-desc { font-size:var(--size-small); color:var(--fg-muted); line-height:1.5; }
+    .model-card.card-purple { border-color:rgba(167,139,250,0.50); background:rgba(167,139,250,0.15); }
+    .model-card.card-green { border-color:rgba(52,211,153,0.45); background:rgba(52,211,153,0.12); }
+    .model-card.card-gold { border-color:rgba(255,211,0,0.50); background:rgba(255,211,0,0.15); }
+    [data-theme="default"] .model-card .model-name { color:#0f172a; }
+    [data-theme="default"] .model-card .model-desc { color:#475569; }
+
+    /* ── slide-message (So What 어노테이션) ── */
+    .slide-message {
+      font-size: var(--size-body);
+      font-weight: 500;
+      color: rgba(255,255,255,0.95);
+      background: rgba(99,102,241,0.25);
+      border-left: 3px solid rgba(255,255,255,0.60);
+      border-radius: 0 0.5rem 0.5rem 0;
+      padding: 0.6rem 1rem;
+      margin-bottom: 1.25rem;
+      width: 100%;
+      backdrop-filter: blur(4px);
+    }
+    [data-theme="minimal"] .slide-message {
+      color: #1e293b;
+      background: rgba(37,99,235,0.08);
+      border-left-color: #2563eb;
+    }
+
+    /* ── 네비게이션 CSS ── */
+    .nav-btn { position:fixed; top:50%; transform:translateY(-50%); z-index:200; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.25); box-shadow:0 4px 12px rgba(0,0,0,0.10); border-radius:50%; width:clamp(2.5rem,4vw,3.5rem); height:clamp(2.5rem,4vw,3.5rem); font-size:clamp(1.4rem,2.5vw,2rem); color:rgba(255,255,255,0.85); cursor:pointer; display:flex; align-items:center; justify-content:center; user-select:none; line-height:1; }
+    .nav-btn:hover { background:rgba(255,255,255,0.28); color:#fff; }
+    .nav-btn:disabled { opacity:0.2; cursor:default; }
+    .nav-prev { left:clamp(0.5rem,1.5vw,1.5rem); }
+    .nav-next { right:clamp(0.5rem,1.5vw,1.5rem); }
+    .nav-bar { position:fixed; bottom:0; left:0; right:0; z-index:200; display:flex; flex-direction:column; background:rgba(255,255,255,0.10); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-top:1px solid rgba(255,255,255,0.15); }
+    .nav-progress { height:3px; background:rgba(255,255,255,0.15); width:100%; }
+    .nav-progress-fill { height:100%; background:rgba(255,255,255,0.75); width:0%; }
+    .nav-info { display:flex; justify-content:center; align-items:center; gap:0.4rem; padding:0.4rem 0 0.5rem; font-size:var(--size-small); font-family:var(--font-sans); font-weight:500; color:rgba(255,255,255,0.75); background:transparent; }
+    .nav-sep { color:rgba(255,255,255,0.30); }
+    [data-theme="minimal"] .nav-btn { background:rgba(0,0,0,0.07); border-color:rgba(0,0,0,0.12); color:#374151; }
+    [data-theme="minimal"] .nav-btn:hover { background:rgba(0,0,0,0.12); color:#111827; }
+    [data-theme="minimal"] .nav-bar { background:rgba(255,255,255,0.70); border-top:1px solid rgba(0,0,0,0.08); }
+    [data-theme="minimal"] .nav-info { color:#6b7280; }
+    [data-theme="minimal"] .nav-progress { background:rgba(0,0,0,0.10); }
+    [data-theme="minimal"] .nav-progress-fill { background:#374151; }
+  </style>
+</head>
+<body>
+  <div class="slideshow" id="slideshow">
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-1: cover -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide active" id="slide-1" data-type="cover" data-layout="title-cover">
+      <div class="cover-inner">
+        <span class="cover-eyebrow">PRESENTATION</span>
+        <h1>oh-my-claudecode (OMC) 내부 구조</h1>
+        <p class="subtitle">v4.9.1 멀티 에이전트 오케스트레이션 레이어 분석</p>
+        <div class="meta"><span>omc-internals</span><span>2026-03-29</span></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-2: toc -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-2" data-type="toc" data-layout="agenda">
+      <h2>목차</h2>
+      <ol>
+        <li data-goto="slide-3">개요</li>
+        <li data-goto="slide-5">디렉토리 구조</li>
+        <li data-goto="slide-8">핵심 설정 파일</li>
+        <li data-goto="slide-11">에이전트 시스템</li>
+        <li data-goto="slide-15">스킬 시스템</li>
+        <li data-goto="slide-19">훅(Hooks) 시스템</li>
+        <li data-goto="slide-22">상태 관리</li>
+        <li data-goto="slide-26">팀 파이프라인</li>
+        <li data-goto="slide-29">MCP / HUD / 매직 키워드 / 환경 변수</li>
+        <li data-goto="slide-33">사용 예시</li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-3: divider — 01 개요 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-3" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">01</span>
+      <h2>개요</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-4: 개요 다이어그램 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-4" data-type="content" data-layout="diagram">
+      <h3>OMC 핵심 구조</h3>
+      <p class="slide-message"><strong>4가지 핵심 구성 요소가 이벤트 기반으로 연결되어 동작한다</strong></p>
+      <div class="diagram-container">
+        <div class="diagram-flow-tb">
+          <div class="diagram-node node-gold">사용자 입력</div>
+          <span class="diagram-arrow">&#8595;</span>
+          <div class="diagram-node node-green">훅 시스템<br/>(31개 이벤트 훅)</div>
+          <span class="diagram-arrow">&#8595;</span>
+          <div class="diagram-branch">
+            <div class="diagram-flow-tb">
+              <div class="diagram-node node-blue">키워드 감지<br/>자동 스킬 트리거</div>
+            </div>
+            <div class="diagram-flow-tb">
+              <div class="diagram-node node-green">스킬 시스템<br/>(32+ 스킬)</div>
+            </div>
+          </div>
+          <span class="diagram-arrow">&#8595;</span>
+          <div class="diagram-node node-green">에이전트<br/>(29+ 전문 에이전트)</div>
+          <span class="diagram-arrow">&#8597;</span>
+          <div class="diagram-node node-blue">상태 관리<br/>(.omc/state/)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-5: divider — 02 디렉토리 구조 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-5" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">02</span>
+      <h2>디렉토리 구조</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-6: .omc/ 로컬 상태 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-6" data-type="content" data-layout="default">
+      <h3><code>.omc/</code>는 실행 중 상태를 파일별로 분리 저장한다</h3>
+      <p class="slide-message"><strong>프로젝트별 상태가 3개 하위 디렉토리로 격리된다</strong></p>
+      <ul>
+        <li><code>project-memory.json</code> &#8212; 프로젝트 메타데이터</li>
+        <li><code>sessions/{id}.json</code> &#8212; 세션별 진행 스냅샷</li>
+        <li><code>state/mission-state.json</code> &#8212; 현재 미션 추적</li>
+        <li><code>state/hud-state.json</code> &#8212; HUD 상태</li>
+        <li><code>state/autopilot|ralph-state.json</code> &#8212; 실행 모드별 상태</li>
+      </ul>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-7: ~/.claude/ 전역 설정 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-7" data-type="content" data-layout="default">
+      <h3><code>~/.claude/</code>는 OMC 동작의 뼈대를 구성한다</h3>
+      <ul>
+        <li><code>CLAUDE.md</code> &#8212; OMC 핵심 운영 가이드</li>
+        <li><code>settings.json</code> &#8212; Claude Code 설정</li>
+        <li><code>.omc-config.json</code> &#8212; OMC 프로젝트 설정</li>
+        <li><code>hud/omc-hud.mjs</code> &#8212; 스태이터스라인 스크립트</li>
+        <li><code>plugins/</code> &#8212; 플러그인 레지스트리 및 캐시</li>
+      </ul>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-8: divider — 03 핵심 설정 파일 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-8" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">03</span>
+      <h2>핵심 설정 파일</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-9: CLAUDE.md -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-9" data-type="content" data-layout="default">
+      <h3>CLAUDE.md는 모든 에이전트가 공유하는 운영 헌법이다</h3>
+      <p class="slide-message"><strong>7개 섹션이 위임&#183;라우팅&#183;검증 규칙을 일원화한다</strong></p>
+      <ul>
+        <li><code>&lt;operating_principles&gt;</code> &#8212; 위임, 검증, 경량화 원칙</li>
+        <li><code>&lt;delegation_rules&gt;</code> &#8212; 직접 처리 vs 위임 기준</li>
+        <li><code>&lt;model_routing&gt;</code> &#8212; Haiku/Sonnet/Opus 선택</li>
+        <li><code>&lt;skills&gt;</code> &#8212; Tier-0 워크플로우 정의</li>
+        <li><code>&lt;verification&gt;</code> &#8212; 완성 전 검증 프로토콜</li>
+      </ul>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-10: 설정 파일 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-10" data-type="content" data-layout="code-focus">
+      <h3>두 설정 파일로 실행 모드&#183;팀 크기&#183;HUD를 제어한다</h3>
+      <p class="slide-message"><strong>최소 설정으로 팀 에이전트 모드가 활성화된다</strong></p>
+      <pre><code>// .omc-config.json
+{ "defaultExecutionMode": "ultrawork",
+  "team": { "maxAgents": 3 } }
+
+// settings.json
+{ "env": { "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1" },
+  "statusLine": { "command": "node $HOME/.claude/hud/omc-hud.mjs" } }</code></pre>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-11: divider — 04 에이전트 시스템 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-11" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">04</span>
+      <h2>에이전트 시스템</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-12: 모델 계층 (slide-A) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-12" data-type="content" data-layout="default">
+      <h3>복잡도에 따라 Haiku&#8594;Sonnet&#8594;Opus가 자동 배정된다</h3>
+      <p class="slide-message"><strong>3단계 모델 라우팅이 비용 대비 품질을 최적화한다</strong></p>
+      <div class="model-cards">
+        <div class="model-card card-purple">
+          <div class="model-icon">&#9889;</div>
+          <div class="model-name">Haiku</div>
+          <div class="model-desc">빠른 조회<br/>단순 검색</div>
+        </div>
+        <div class="model-card card-green">
+          <div class="model-icon">&#127919;</div>
+          <div class="model-name">Sonnet</div>
+          <div class="model-desc">표준 작업<br/>구현, 분석</div>
+        </div>
+        <div class="model-card card-gold">
+          <div class="model-icon">&#127942;</div>
+          <div class="model-name">Opus</div>
+          <div class="model-desc">복잡한 작업<br/>설계, 보안</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-13: 에이전트 카탈로그 표 (slide-B) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-13" data-type="content" data-layout="table-data">
+      <h3>29+ 에이전트가 5개 전문 레인으로 역할 분리된다</h3>
+      <p class="slide-message"><strong>각 레인이 독립 책임을 가져 병렬 협업이 가능하다</strong></p>
+      <table>
+        <thead><tr><th>레인</th><th>에이전트</th><th>모델</th></tr></thead>
+        <tbody>
+          <tr><td>빌드/분석</td><td>explore, planner, architect, executor, verifier</td><td>Haiku~Opus</td></tr>
+          <tr><td>리뷰</td><td>code/security/performance/api/style-reviewer</td><td>Sonnet~Opus</td></tr>
+          <tr><td>도메인</td><td>test-engineer, designer, writer, qa-tester</td><td>Sonnet</td></tr>
+          <tr><td>제품</td><td>product-manager, ux-researcher, analyst</td><td>Sonnet</td></tr>
+          <tr><td>조율</td><td>critic, vision</td><td>Opus</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-14: 고급 워크플로우 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-14" data-type="content" data-layout="list">
+      <h3>고급 워크플로우가 전문 도메인 작업을 자동화한다</h3>
+      <ul>
+        <li><strong>deep-interview</strong> &#8212; Socratic 심층 요구사항 인터뷰</li>
+        <li><strong>deep-dive</strong> &#8212; trace + deep-interview 2단계</li>
+        <li><strong>ultraqa</strong> &#8212; 테스트&#8594;검증&#8594;수정 QA 사이클</li>
+        <li><strong>visual-verdict</strong> &#8212; 스크린샷 시각적 비교 QA</li>
+        <li><strong>ai-slop-cleaner</strong> &#8212; AI 생성 코드 정리</li>
+      </ul>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-15: divider — 05 스킬 시스템 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-15" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">05</span>
+      <h2>스킬 시스템</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-16: 스킬 계층 다이어그램 (slide-A) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-16" data-type="content" data-layout="diagram">
+      <h3>키워드 입력만으로 Tier-0 스킬이 즉시 자동 실행된다</h3>
+      <p class="slide-message"><strong>사용자 입력이 3단계 스킬 계층을 자동 탐색한다</strong></p>
+      <div class="diagram-container">
+        <div class="diagram-flow-tb">
+          <div class="diagram-node node-gold">사용자</div>
+          <span class="diagram-arrow">&#8595;</span>
+          <div class="diagram-node node-blue">키워드 감지</div>
+          <span class="diagram-arrow">&#8595;</span>
+          <div class="diagram-branch">
+            <div class="diagram-subgraph">
+              <div class="diagram-subgraph-label">Tier-0 핵심</div>
+              <div class="diagram-flow-lr">
+                <div class="diagram-node node-gold">autopilot</div>
+                <div class="diagram-node node-gold">ralph</div>
+                <div class="diagram-node node-gold">ultrawork</div>
+                <div class="diagram-node node-gold">team</div>
+                <div class="diagram-node node-gold">ralplan</div>
+              </div>
+            </div>
+            <div class="diagram-flow-tb">
+              <div class="diagram-node node-green">고급</div>
+            </div>
+            <div class="diagram-flow-tb">
+              <div class="diagram-node node-blue">유틸리티</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-17: Tier-0 비교표 (slide-B) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-17" data-type="content" data-layout="table-data">
+      <h3>5개 Tier-0 스킬은 각각 다른 문제 유형에 최적화되었다</h3>
+      <p class="slide-message"><strong>키워드 하나로 분석&#183;실행&#183;검증 전체가 자동화된다</strong></p>
+      <table>
+        <thead><tr><th>스킬</th><th>키워드</th><th>특징</th><th>용도</th></tr></thead>
+        <tbody>
+          <tr><td><strong>autopilot</strong></td><td>"autopilot"</td><td>분석&#8594;실행&#8594;검증 자동</td><td>새 기능</td></tr>
+          <tr><td><strong>ralph</strong></td><td>"ralph"</td><td>달성까지 루프 반복</td><td>버그 수정</td></tr>
+          <tr><td><strong>ultrawork</strong></td><td>"ulw"</td><td>병렬 태스크 분해</td><td>리팩토링</td></tr>
+          <tr><td><strong>team</strong></td><td>/team</td><td>N개 에이전트 조율</td><td>대규모</td></tr>
+          <tr><td><strong>ralplan</strong></td><td>"ralplan"</td><td>합의 기반 전략</td><td>아키텍처</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-18: 고급 스킬 (slide-C) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-18" data-type="content" data-layout="list">
+      <h3>고급 스킬이 전문 도메인 파이프라인을 제공한다</h3>
+      <ul>
+        <li><strong>deep-interview</strong> &#8212; Socratic 심층 인터뷰</li>
+        <li><strong>deep-dive</strong> &#8212; trace + interview 2단계</li>
+        <li><strong>ultraqa</strong> &#8212; 테스트&#8594;검증&#8594;수정 사이클</li>
+        <li><strong>visual-verdict</strong> &#8212; 스크린샷 시각 비교</li>
+        <li><strong>trace</strong> &#8212; 경쟁 가설 근본원인 추적</li>
+      </ul>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-19: divider — 06 훅 시스템 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-19" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">06</span>
+      <h2>훅(Hooks) 시스템</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-20: 훅 이벤트 흐름 다이어그램 (slide-A) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-20" data-type="content" data-layout="diagram">
+      <h3>5단계 이벤트 파이프라인을 모든 사용자 입력이 통과한다</h3>
+      <p class="slide-message"><strong>각 훅 단계에서 권한 검증&#183;규칙 주입&#183;오류 복구가 자동 실행된다</strong></p>
+      <div class="diagram-container">
+        <div class="diagram-flow-lr">
+          <div class="diagram-node node-gold">사용자 입력</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">UserPromptSubmit<br/>키워드 감지</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">PreToolUse<br/>권한 검증</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-blue">도구 실행</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">PostToolUse<br/>오류 복구</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">Stop<br/>세션 종료</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-21: 훅 분류 표 (slide-B) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-21" data-type="content" data-layout="table-data">
+      <h3>31개 훅이 6개 범주로 목적별 분류되어 동작한다</h3>
+      <p class="slide-message"><strong>각 범주가 실행 모드&#183;검증&#183;복구&#183;감지를 독립 담당한다</strong></p>
+      <table>
+        <thead><tr><th>분류</th><th>수량</th><th>예시</th></tr></thead>
+        <tbody>
+          <tr><td>실행 모드</td><td>8개</td><td>autopilot, ralph, ultrawork</td></tr>
+          <tr><td>검증</td><td>4개</td><td>thinking-block-validator</td></tr>
+          <tr><td>복구</td><td>3개</td><td>recovery, compaction</td></tr>
+          <tr><td>향상</td><td>5개</td><td>rules-injector, notepad</td></tr>
+          <tr><td>감지</td><td>5개</td><td>keyword-detector, think-mode</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-22: divider — 07 상태 관리 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-22" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">07</span>
+      <h2>상태 관리</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-23: 상태 위치 표 (slide-A) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-23" data-type="content" data-layout="table-data">
+      <h3>상태가 3개 범위로 계층 분리되어 저장된다</h3>
+      <p class="slide-message"><strong>프로젝트&#183;전역&#183;중앙화 3단계로 상태 유실을 방지한다</strong></p>
+      <table>
+        <thead><tr><th>범위</th><th>경로</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td>프로젝트</td><td><code>.omc/state/{name}.json</code></td><td>현재 프로젝트 전용</td></tr>
+          <tr><td>전역</td><td><code>~/.omc/state/{name}.json</code></td><td>사용자 전역</td></tr>
+          <tr><td>중앙화</td><td><code>$OMC_STATE_DIR/{id}/</code></td><td>워크트리 삭제 후 유지</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-24: 주요 상태 파일 표 (slide-B) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-24" data-type="content" data-layout="table-data">
+      <h3>각 실행 모드는 독립 JSON 파일로 추적된다</h3>
+      <p class="slide-message"><strong>6개 핵심 상태 파일이 미션&#183;에이전트&#183;모드를 각각 추적한다</strong></p>
+      <table>
+        <thead><tr><th>파일</th><th>역할</th><th>주요 필드</th></tr></thead>
+        <tbody>
+          <tr><td>mission-state</td><td>현재 미션 추적</td><td>agents[], status</td></tr>
+          <tr><td>hud-state</td><td>스태이터스라인</td><td>backgroundTasks[]</td></tr>
+          <tr><td>subagent-tracking</td><td>에이전트 수명</td><td>agents[], total</td></tr>
+          <tr><td>autopilot-state</td><td>autopilot 진행</td><td>phase, goal, plan</td></tr>
+          <tr><td>ralph-state</td><td>ralph 루프</td><td>iteration, verified</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-25: 상태 특성 (slide-C) -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-25" data-type="content" data-layout="list">
+      <h3>원자적 쓰기&#183;TTL&#183;자동 마이그레이션으로 상태 일관성을 보장한다</h3>
+      <ul>
+        <li><strong>캐시 TTL 5초</strong> &#8212; 읽기 성능 최적화</li>
+        <li><strong>자동 정리 4시간</strong> &#8212; 오래된 상태 자동 삭제</li>
+        <li><strong>원자적 쓰기</strong> &#8212; 부분 쓰기 방지</li>
+        <li><strong>자동 마이그레이션</strong> &#8212; 레거시&#8594;표준 경로 변환</li>
+      </ul>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-26: divider — 08 팀 파이프라인 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-26" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">08</span>
+      <h2>팀 파이프라인</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-27: 팀 파이프라인 다이어그램 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-27" data-type="content" data-layout="diagram">
+      <h3>팀 파이프라인이 계획&#8594;실행&#8594;검증을 자동 순환한다</h3>
+      <p class="slide-message"><strong>실패 시 Fix 단계가 자동 개입하여 재검증까지 루프한다</strong></p>
+      <div class="diagram-container">
+        <div class="diagram-flow-lr">
+          <div class="diagram-node node-green">Plan<br/>계획 수립</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">PRD<br/>수용 기준</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">Exec<br/>병렬 실행<br/>(3 워커)</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">Verify<br/>검증</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-branch">
+            <div class="diagram-flow-tb">
+              <div class="diagram-node node-gold">Fix<br/>수정</div>
+            </div>
+            <div class="diagram-flow-tb">
+              <div class="diagram-node node-blue">완료</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-28: 팀 워커 모델 해결 우선순위 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-28" data-type="content" data-layout="list">
+      <h3>워커 모델은 5단계 우선순위로 결정된다</h3>
+      <ol>
+        <li>명시적 <code>--model</code> 플래그</li>
+        <li>제공자 모델 env (<code>ANTHROPIC_MODEL</code>)</li>
+        <li>제공자 계층 env (<code>ANTHROPIC_DEFAULT_SONNET_MODEL</code>)</li>
+        <li>OMC 계층 env (<code>OMC_MODEL_MEDIUM</code>)</li>
+        <li>Claude Code 기본값</li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-29: divider — 09 MCP / HUD / 매직 키워드 / 환경 변수 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-29" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">09</span>
+      <h2>MCP / HUD / 매직 키워드 / 환경 변수</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-30: MCP + HUD -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-30" data-type="content" data-layout="default">
+      <h3>MCP 서버와 HUD가 실행 인프라를 제공한다</h3>
+      <ul>
+        <li><strong>MCP 출력 정책</strong> &#8212; <code>strict</code> 기본, 리다이렉트 지원</li>
+        <li><strong>HUD 로드 순서</strong> &#8212; 개발경로&#8594;캐시&#8594;npm&#8594;에러</li>
+        <li><strong>플러그인</strong> &#8212; omc v4.9.1, skill-creator, mcp-server-dev</li>
+      </ul>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-31: 매직 키워드 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-31" data-type="content" data-layout="table-data">
+      <h3>특정 단어 입력만으로 해당 스킬이 즉시 자동 실행된다</h3>
+      <p class="slide-message"><strong>가장 긴 매치(구체적인 것)가 우선 적용된다</strong></p>
+      <table>
+        <thead><tr><th>키워드</th><th>트리거 스킬</th></tr></thead>
+        <tbody>
+          <tr><td>"ralph", "don't stop"</td><td>ralph</td></tr>
+          <tr><td>"autopilot", "build me"</td><td>autopilot</td></tr>
+          <tr><td>"ulw", "ultrawork"</td><td>ultrawork</td></tr>
+          <tr><td>"ralplan", "consensus"</td><td>ralplan</td></tr>
+          <tr><td>"tdd", "deslop", "cancel"</td><td>TDD / slop-cleaner / cancel</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-32: 환경 변수 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-32" data-type="content" data-layout="table-data">
+      <h3>6개 환경변수로 OMC를 제어하며 DISABLE_OMC가 킬스위치다</h3>
+      <p class="slide-message"><strong>환경변수만으로 병렬 실행&#183;훅 스킵&#183;전체 비활성화가 가능하다</strong></p>
+      <table>
+        <thead><tr><th>변수</th><th>기본값</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><code>OMC_STATE_DIR</code></td><td>_(unset)_</td><td>중앙화 상태 디렉토리</td></tr>
+          <tr><td><code>OMC_PARALLEL_EXECUTION</code></td><td>true</td><td>병렬 실행 활성화</td></tr>
+          <tr><td><code>OMC_LSP_TIMEOUT_MS</code></td><td>15000</td><td>LSP 타임아웃</td></tr>
+          <tr><td><code>DISABLE_OMC</code></td><td>_(unset)_</td><td>OMC 전체 비활성화</td></tr>
+          <tr><td><code>OMC_SKIP_HOOKS</code></td><td>_(unset)_</td><td>특정 훅 스킵</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-33: divider — 10 사용 예시 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-33" data-type="divider" data-layout="section-divider">
+      <span class="divider-number">10</span>
+      <h2>사용 예시</h2>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-34: 예시 오버뷰 카드 -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-34" data-type="content" data-layout="list">
+      <h3>6가지 핵심 시나리오로 OMC 활용법을 익힌다</h3>
+      <ol>
+        <li><strong>autopilot</strong> &#8212; 새 기능 완전 자동 구축</li>
+        <li><strong>ralph</strong> &#8212; 복잡한 버그 끝까지 수정</li>
+        <li><strong>ultrawork</strong> &#8212; 대규모 병렬 리팩토링</li>
+        <li><strong>ralplan</strong> &#8212; 아키텍처 설계 합의</li>
+        <li><strong>team</strong> &#8212; N개 에이전트 팀 조율</li>
+        <li><strong>deep-interview</strong> &#8212; 요구사항 심층 인터뷰</li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-35: 예시 1 — autopilot -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-35" data-type="content" data-layout="default">
+      <h3>autopilot: 새 기능 완전 자동 구축</h3>
+      <blockquote><p>"사용자 인증 기능을 build me"</p></blockquote>
+      <ol>
+        <li><code>autopilot</code> 키워드 감지&#8594;자동 실행</li>
+        <li><code>explore</code>가 기존 코드 분석</li>
+        <li><code>planner</code>&#8594;<code>executor</code>&#8594;<code>verifier</code></li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-36: 예시 2 — ralph -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-36" data-type="content" data-layout="default">
+      <h3>ralph: 복잡한 버그 끝까지 수정</h3>
+      <blockquote><p>"결제 모듈 500 에러, ralph로 고쳐줘"</p></blockquote>
+      <ol>
+        <li><code>ralph</code> 키워드 감지&#8594;실행</li>
+        <li><code>debugger</code> 가설 수립&#8594;<code>executor</code> 수정</li>
+        <li><code>verifier</code> 검증 실패 시 반복 루프</li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-37: 예시 3 — ultrawork -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-37" data-type="content" data-layout="default">
+      <h3>ultrawork: 대규모 병렬 리팩토링</h3>
+      <blockquote><p>"ulw &#8212; REST에서 tRPC 마이그레이션"</p></blockquote>
+      <ol>
+        <li>태스크를 파일/모듈 단위로 분해</li>
+        <li>3개 <code>executor</code> 병렬 실행</li>
+        <li>충돌 해결 후 전체 검증</li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-38: 예시 4 — ralplan -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-38" data-type="content" data-layout="default">
+      <h3>ralplan: 아키텍처 설계 합의</h3>
+      <blockquote><p>"모노레포 vs 멀티레포 분석해줘"</p></blockquote>
+      <ol>
+        <li><code>architect</code>(Opus) 옵션별 장단점 분석</li>
+        <li><code>critic</code> 반론 및 엣지케이스 검토</li>
+        <li><code>planner</code> 최종 합의안 도출</li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-39: 예시 5 — team -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-39" data-type="content" data-layout="diagram">
+      <h3>team: N개 에이전트 팀 조율</h3>
+      <p class="slide-message"><strong>/team 명시 호출로 계획&#8594;실행&#8594;검증을 병렬 워커가 수행한다</strong></p>
+      <div class="diagram-container">
+        <div class="diagram-flow-lr">
+          <div class="diagram-node node-green">Plan<br/>태스크 분배</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">PRD<br/>수용 기준</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">Exec<br/>Worker A/B/C<br/>병렬 구현</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-green">Verify<br/>통합 검증</div>
+          <span class="diagram-arrow">&#8594;</span>
+          <div class="diagram-node node-blue">완료</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-40: 예시 6 — deep-interview -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-40" data-type="content" data-layout="default">
+      <h3>deep-interview: 요구사항 심층 인터뷰</h3>
+      <blockquote><p>"대시보드 만들고 싶은데 뭐가 필요한지 모르겠어"</p></blockquote>
+      <ol>
+        <li>Socratic 방식으로 목표&#183;제약 질문</li>
+        <li>답변 기반 요구사항 명세 초안 작성</li>
+        <li>모호 항목 재질문&#8594;최종 PRD 산출</li>
+      </ol>
+    </div>
+
+    <!-- ════════════════════════════════════════════════ -->
+    <!-- slide-41: closing -->
+    <!-- ════════════════════════════════════════════════ -->
+    <div class="slide" id="slide-41" data-type="closing" data-layout="end">
+      <div class="closing-card">
+        <div class="closing-icon">&#127881;</div>
+        <h2>감사합니다</h2>
+        <p class="closing-message">질문이 있으시면 언제든지 연락주세요.</p>
+        <div class="closing-contact"><span>omc-internals</span><span>2026-03-29</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <button class="nav-btn nav-prev" id="navPrev" aria-label="이전 슬라이드">&#8249;</button>
+  <button class="nav-btn nav-next" id="navNext" aria-label="다음 슬라이드">&#8250;</button>
+
+  <div class="nav-bar" id="navBar">
+    <div class="nav-progress">
+      <div class="nav-progress-fill" id="navProgressFill"></div>
+    </div>
+    <div class="nav-info">
+      <span id="currentSlide">1</span>
+      <span class="nav-sep">/</span>
+      <span id="totalSlides">1</span>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      'use strict';
+      var slideshow=document.getElementById('slideshow');
+      var currentEl=document.getElementById('currentSlide');
+      var totalEl=document.getElementById('totalSlides');
+      var slides=Array.from(slideshow.querySelectorAll('.slide'));
+      var current=0;
+
+      function hashToIndex(h){var m=(h||'').match(/slide-(\d+)/);if(m){var i=parseInt(m[1],10)-1;if(i>=0&&i<slides.length)return i;}return 0;}
+      function updateHash(i){var id=slides[i].id||('slide-'+(i+1));history.replaceState(null,'','#'+id);}
+      function updateCounter(i){
+        if(currentEl)currentEl.textContent=i+1;
+        if(totalEl)totalEl.textContent=slides.length;
+        var fill=document.getElementById('navProgressFill');
+        if(fill)fill.style.width=((i+1)/slides.length*100)+'%';
+        var prevBtn=document.getElementById('navPrev');
+        var nextBtn=document.getElementById('navNext');
+        if(prevBtn)prevBtn.disabled=i===0;
+        if(nextBtn)nextBtn.disabled=i===slides.length-1;
+      }
+
+      function goTo(idx,skipHash){
+        if(idx<0||idx>=slides.length)return;
+        slides[current].classList.remove('active');
+        current=idx;
+        slides[current].classList.add('active');
+        updateCounter(current);
+        if(!skipHash)updateHash(current);
+      }
+
+      function next(){goTo(current+1);}
+      function prev(){goTo(current-1);}
+
+      document.addEventListener('keydown',function(e){
+        if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){e.preventDefault();next();}
+        else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prev();}
+        else if(e.key==='Home'){e.preventDefault();goTo(0);}
+        else if(e.key==='End'){e.preventDefault();goTo(slides.length-1);}
+      });
+
+      document.addEventListener('click',function(e){
+        if(e.target.tagName==='A')return;
+        var gt=e.target.closest('[data-goto]');
+        if(gt){var i=slides.findIndex(function(s){return s.id===gt.dataset.goto;});if(i!==-1){goTo(i);return;}}
+      });
+
+      var prevBtn=document.getElementById('navPrev');
+      var nextBtn=document.getElementById('navNext');
+      if(prevBtn)prevBtn.addEventListener('click',function(e){e.stopPropagation();prev();});
+      if(nextBtn)nextBtn.addEventListener('click',function(e){e.stopPropagation();next();});
+
+      window.addEventListener('hashchange',function(){var i=hashToIndex(location.hash);if(i!==current)goTo(i,true);});
+
+      var tsx=0,tsy=0;
+      document.addEventListener('touchstart',function(e){tsx=e.changedTouches[0].screenX;tsy=e.changedTouches[0].screenY;},{passive:true});
+      document.addEventListener('touchend',function(e){
+        var dx=e.changedTouches[0].screenX-tsx,th=50;
+        if(dx<-th)next();else if(dx>th)prev();
+      },{passive:true});
+
+      function init(){
+        if(totalEl)totalEl.textContent=slides.length;
+        slides.forEach(function(s,i){s.classList.remove('active');if(!s.id)s.id='slide-'+(i+1);});
+        var start=hashToIndex(location.hash);
+        slides[start].classList.add('active');
+        current=start;updateCounter(current);
+      }
+      init();
+    })();
+  </script>
+</body>
+</html>
