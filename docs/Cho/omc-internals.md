@@ -495,7 +495,35 @@ export OMC_STATE_DIR="$HOME/.claude/omc"
 
 ---
 
-### 예시 5 — 요구사항 심층 인터뷰 (deep-interview)
+### 예시 5 — 팀 에이전트 조율 (team)
+
+> 대규모 프로젝트를 계획부터 검증까지 N개 에이전트가 협력해서 처리
+
+```
+/team "백오피스 어드민 페이지 구축 — 사용자 관리, 통계 대시보드, 권한 설정 포함"
+```
+
+**동작 흐름:**
+
+```mermaid
+flowchart LR
+    Plan["📐 team-plan<br/>요구사항 분석<br/>태스크 분배"] --> PRD["📄 team-prd<br/>수용 기준 정의"]
+    PRD --> Exec["⚡ team-exec<br/>Worker A: 사용자 관리<br/>Worker B: 대시보드<br/>Worker C: 권한 설정"]
+    Exec --> Verify["✅ team-verify<br/>통합 검증"]
+    Verify -->|실패| Fix["🔧 team-fix<br/>수정 후 재검증"]
+    Fix --> Verify
+    Verify -->|성공| Done(["완료"])
+```
+
+- `team-plan`: 전체 작업을 3개 독립 태스크로 분해
+- `team-exec`: 각 워커가 병렬로 담당 모듈 구현
+- `team-verify`: 통합 후 전체 동작 검증
+- `/team` 명시 호출 필요 (키워드 자동 트리거 없음)
+
+---
+
+### 예시 6 — 요구사항 심층 인터뷰 (deep-interview)
+
 
 > 막연한 아이디어를 구체적인 스펙으로 발전시킬 때
 
