@@ -1,12 +1,12 @@
 ---
 name: md-to-slides
-description: Markdown 문서를 테마/레이아웃 선택 가능한 HTML 슬라이드로 변환
+description: Markdown 문서를 테마/전환효과 선택 가능한 HTML 슬라이드로 변환 (슬라이드별 레이아웃 자동 감지)
 triggers:
   - "md to slides"
   - "markdown to slides"
   - "슬라이드 생성"
   - "슬라이드로 변환"
-argument-hint: "<markdown-file> [--theme default|dark|minimal|corporate] [--layout horizontal|vertical|split]"
+argument-hint: "<markdown-file> [--theme default|dark|minimal|corporate] [--transition horizontal|vertical|fade]"
 level: 2
 ---
 
@@ -14,6 +14,8 @@ level: 2
 
 이 스킬은 Markdown 파일을 읽어 self-contained HTML 슬라이드로 변환한다.
 `templates.md`의 CSS/JS 명세를 그대로 임베드하여 외부 의존성 없는 단일 HTML 파일을 생성한다.
+
+각 슬라이드는 콘텐츠를 분석하여 최적의 레이아웃(`data-layout`)을 자동 결정한다.
 
 ---
 
@@ -25,13 +27,13 @@ level: 2
 |------|--------|------|
 | `<markdown-file>` | (필수) | 변환할 .md 파일 경로 |
 | `--theme` | `default` | `default` \| `dark` \| `minimal` \| `corporate` |
-| `--layout` | `horizontal` | `horizontal` \| `vertical` \| `split` |
+| `--transition` | `horizontal` | `horizontal` \| `vertical` \| `fade` |
 
 **파싱 규칙:**
 - 첫 번째 비-플래그 인자가 파일 경로
 - `--theme <값>` 또는 `--theme=<값>` 형식 모두 처리
-- `--layout <값>` 또는 `--layout=<값>` 형식 모두 처리
-- 유효하지 않은 테마/레이아웃 값이면 기본값 사용
+- `--transition <값>` 또는 `--transition=<값>` 형식 모두 처리
+- 유효하지 않은 테마/전환 값이면 기본값 사용
 
 **출력 경로:** 입력 파일과 동일한 디렉토리, 동일한 파일명에 확장자만 `.html`로 변경
 - 예: `docs/presentation.md` → `docs/presentation.html`
@@ -90,15 +92,65 @@ level: 2
 
 ---
 
-## 4. HTML 생성 지침
+## 4. 슬라이드별 레이아웃 자동 감지
 
-### 4.1 기본 구조
+각 슬라이드의 콘텐츠를 분석하여 `data-layout` 값을 자동 결정한다.
+
+### 4.1 구조형 (슬라이드 타입으로 고정)
+
+| 슬라이드 타입 | data-layout | 설명 |
+|---------------|-------------|------|
+| `cover` | `title-cover` | 고정 |
+| `divider` | `section-divider` | 고정 |
+| `toc` | `agenda` | 고정 |
+| `closing` | `end` | 고정 |
+
+### 4.2 content 슬라이드 자동 감지 규칙
+
+`data-type="content"` 슬라이드는 본문 콘텐츠를 분석하여 아래 규칙을 **우선순위 순서대로** 검사한다. 첫 번째로 매칭되는 레이아웃을 적용한다.
+
+| 우선순위 | data-layout | 감지 조건 |
+|----------|-------------|-----------|
+| 1 | `diagram-fullbleed` | mermaid 코드블록만 있고 텍스트 거의 없음 (리스트/문단 0개) |
+| 2 | `diagram-split` | mermaid 코드블록 + 리스트 또는 문단 혼재 |
+| 3 | `diagram` | mermaid 코드블록 + h3 제목만 (설명 최소) |
+| 4 | `iframe-embed` | `<iframe>` 태그 또는 단독 URL 한 줄 |
+| 5 | `fullbleed-image` | `![bg]()` 패턴 또는 이미지만 있고 텍스트 없음 |
+| 6 | `image-left` | 이미지가 첫 번째 요소 |
+| 7 | `image-right` | 텍스트 먼저, 이미지가 마지막 요소 |
+| 8 | `code-focus` | 코드블록이 콘텐츠의 50% 이상 차지 (mermaid 제외) |
+| 9 | `data-chart` | mermaid 코드블록 중 `pie`, `xychart`, `gantt` 키워드 |
+| 10 | `dashboard` | "KPI", "달성률", "지표" 키워드 + 복수 테이블 |
+| 11 | `table-data` | 마크다운 테이블 (4열 이상 또는 5행 이상) |
+| 12 | `comparison` | "vs", "versus", "비교" 키워드 또는 ✅/❌ 패턴 또는 2~3열 테이블 |
+| 13 | `timeline` | 날짜/분기 패턴(`2024`, `Q1`, `1월`) + 순서 있는 리스트 |
+| 14 | `steps-process` | `→`, `Step`, `Phase`, `단계` 키워드 + 순서 리스트 |
+| 15 | `icon-grid` | 이모지로 시작하는 항목이 3개 이상 반복 |
+| 16 | `three-cols` | H3가 정확히 3개 (각 H3 아래 동등한 분량) |
+| 17 | `two-cols-header` | H3 + `::left::` / `::right::` 구분자 |
+| 18 | `two-cols` | `::left::` / `::right::` 구분자 (H3 없음) |
+| 19 | `asymmetric-split` | `ratio:` 키워드 또는 `60:40`, `70:30` 패턴 |
+| 20 | `fact` | H3 텍스트가 숫자/퍼센트로 시작 또는 단독 큰 숫자 |
+| 21 | `quote` | blockquote(`>`) 가 주 콘텐츠 |
+| 22 | `statement` | 굵은(**) 단일 문장, 리스트 없음, 50자 이내 |
+| 23 | `intro-profile` | 이미지 + 이름 형태 텍스트 + 직함/역할 텍스트 |
+| 24 | `center` | 텍스트 전체 5단어 이내 (h3 포함), 리스트/코드 없음 |
+| 25 | `list` | 리스트 항목 3개 이상, 문단 없음 |
+| 26 | `default` | 위 어느 것도 해당 안 됨 (fallback) |
+
+**참고:** `title-cover`, `section-divider`, `agenda`, `end`는 슬라이드 타입으로 이미 결정되므로 content 슬라이드 감지 목록에 없다.
+
+---
+
+## 5. HTML 생성 지침
+
+### 5.1 기본 구조
 
 `templates.md` Section 5의 완전한 단일 파일 HTML 템플릿을 기반으로 생성한다.
 
 ```html
 <!DOCTYPE html>
-<html lang="ko" data-theme="{{THEME}}" data-layout="{{LAYOUT}}">
+<html lang="ko" data-theme="{{THEME}}" data-transition="{{TRANSITION}}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -108,11 +160,6 @@ level: 2
   </style>
 </head>
 <body>
-  <!-- split 레이아웃 전용 nav -->
-  <nav class="split-nav" id="splitNav" style="display:none">
-    <div class="split-nav-title">목차</div>
-  </nav>
-
   <div class="slideshow" id="slideshow">
     {{SLIDES}}
   </div>
@@ -130,21 +177,21 @@ level: 2
 
 **중요:** 외부 CDN, 외부 폰트, 외부 스크립트 참조 절대 금지. 모든 CSS/JS는 `<style>`/`<script>` 태그 안에 직접 삽입.
 
-### 4.2 치환 변수
+### 5.2 치환 변수
 
 | 변수 | 치환 내용 |
 |------|-----------|
 | `{{THEME}}` | 인자로 받은 테마 값 (`default`/`dark`/`minimal`/`corporate`) |
-| `{{LAYOUT}}` | 인자로 받은 레이아웃 값 |
+| `{{TRANSITION}}` | 인자로 받은 전환효과 값 (`horizontal`/`vertical`/`fade`) |
 | `{{TITLE}}` | MD 파일의 H1 텍스트 |
 | `{{SLIDES}}` | 생성된 슬라이드 HTML 전체 |
 
-### 4.3 슬라이드 타입별 HTML 생성
+### 5.3 슬라이드 타입별 HTML 생성
 
 #### cover 슬라이드
 
 ```html
-<div class="slide active" id="slide-1" data-type="cover">
+<div class="slide active" id="slide-1" data-type="cover" data-layout="title-cover">
   <span class="cover-eyebrow">PRESENTATION</span>
   <h1>{{H1_TITLE}}</h1>
   <p class="subtitle">{{SUBTITLE}}</p>
@@ -162,7 +209,7 @@ level: 2
 #### toc 슬라이드
 
 ```html
-<div class="slide" id="slide-2" data-type="toc">
+<div class="slide" id="slide-2" data-type="toc" data-layout="agenda">
   <h2>목차</h2>
   <ol>
     <li data-goto="slide-3">첫 번째 섹션 제목</li>
@@ -177,7 +224,7 @@ level: 2
 #### divider 슬라이드
 
 ```html
-<div class="slide" id="slide-N" data-type="divider">
+<div class="slide" id="slide-N" data-type="divider" data-layout="section-divider">
   <span class="divider-number">01</span>
   <h2>섹션 제목</h2>
   <p class="divider-sub">H2 아래 첫 문단 (있을 경우만)</p>
@@ -190,16 +237,18 @@ level: 2
 #### content 슬라이드
 
 ```html
-<div class="slide" id="slide-N" data-type="content">
+<div class="slide" id="slide-N" data-type="content" data-layout="{{AUTO_DETECTED_LAYOUT}}">
   <h3>슬라이드 제목</h3>
   <!-- 마크다운 본문을 HTML로 변환한 내용 -->
 </div>
 ```
 
+- `{{AUTO_DETECTED_LAYOUT}}`: Section 4의 자동 감지 규칙에 따라 결정된 레이아웃 값
+
 #### closing 슬라이드
 
 ```html
-<div class="slide" id="slide-N" data-type="closing">
+<div class="slide" id="slide-N" data-type="closing" data-layout="end">
   <div class="closing-icon">🎉</div>
   <h2>감사합니다</h2>
   <p class="closing-message">질문이 있으시면 언제든지 연락주세요.</p>
@@ -212,7 +261,7 @@ level: 2
 
 ---
 
-## 5. 마크다운 → HTML 변환 규칙
+## 6. 마크다운 → HTML 변환 규칙
 
 슬라이드 본문의 마크다운 문법을 다음 규칙으로 HTML로 변환한다.
 
@@ -261,43 +310,58 @@ HTML 특수문자 이스케이프:
 
 ---
 
-## 6. 출력
+## 7. 출력
 
 1. 생성된 HTML을 입력 파일과 같은 디렉토리에 `.html` 확장자로 저장
 2. 저장 완료 후 다음 정보를 사용자에게 출력:
    - 출력 파일 경로
    - 생성된 슬라이드 수
-   - 적용된 테마/레이아웃
+   - 적용된 테마/전환효과
+   - 감지된 레이아웃 목록 (각 슬라이드별 data-layout 값)
    - 브라우저에서 열기 안내 (`open <파일경로>` 또는 브라우저로 직접 열기)
 
 ---
 
-## 7. 실행 예시
+## 8. 실행 예시
 
 **입력:**
 ```
-/docs/intro.md --theme dark --layout split
+/docs/intro.md --theme dark --transition fade
 ```
 
 **처리 흐름:**
 1. `/docs/intro.md` 읽기
-2. 테마=`dark`, 레이아웃=`split` 확인
+2. 테마=`dark`, 전환효과=`fade` 확인
 3. MD 파싱 → 슬라이드 구조 생성
-4. templates.md의 CSS/JS 임베드
-5. `/docs/intro.html` 저장
+4. 각 content 슬라이드 본문 분석 → `data-layout` 자동 결정
+5. templates.md의 CSS/JS 임베드
+6. `/docs/intro.html` 저장
 
 **출력 메시지 예시:**
 ```
-✅ 슬라이드 생성 완료
-📄 출력 파일: /docs/intro.html
-📊 슬라이드 수: 12장
-🎨 테마: dark | 레이아웃: split
-🌐 브라우저에서 열기: open /docs/intro.html
+슬라이드 생성 완료
+출력 파일: /docs/intro.html
+슬라이드 수: 12장
+테마: dark | 전환효과: fade
+레이아웃 감지 결과:
+  slide-1:  title-cover
+  slide-2:  agenda
+  slide-3:  section-divider
+  slide-4:  list
+  slide-5:  two-cols
+  slide-6:  code-focus
+  slide-7:  section-divider
+  slide-8:  diagram
+  slide-9:  table-data
+  slide-10: quote
+  slide-11: fact
+  slide-12: end
+브라우저에서 열기: open /docs/intro.html
 ```
 
 ---
 
-## 8. 주의사항
+## 9. 주의사항
 
 - **외부 의존성 금지**: CDN 링크, 외부 폰트(`@import url(...)`), 외부 스크립트 참조 일절 금지
 - **CSS/JS 완전 임베드**: templates.md의 CSS와 JS를 `<style>`/`<script>` 태그 안에 전부 포함
@@ -305,3 +369,4 @@ HTML 특수문자 이스케이프:
 - **섹션 없는 파일**: H2/H3 없이 본문만 있을 경우, 전체 내용을 단일 content 슬라이드로 생성 (cover + content + closing 3장)
 - **HTML 인젝션 방지**: 마크다운 내 HTML 태그는 이스케이프 처리
 - **긴 콘텐츠**: content 슬라이드에 `overflow-y: auto`가 적용되어 있으므로 내용이 많아도 스크롤 가능
+- **레이아웃 자동 감지 실패 시**: `default` 레이아웃을 적용 (안전한 fallback)

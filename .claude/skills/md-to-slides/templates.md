@@ -12,14 +12,13 @@
 :root {
   /* === 색상 === */
   --bg:           #ffffff;   /* 슬라이드 배경 */
-  --bg-alt:       #f5f5f5;   /* 보조 배경 (divider, split 패널 등) */
+  --bg-alt:       #f5f5f5;   /* 보조 배경 (divider, 패널 등) */
   --fg:           #1a1a1a;   /* 기본 텍스트 */
   --fg-muted:     #6b7280;   /* 보조 텍스트 */
   --accent:       #2563eb;   /* 포인트 색상 (링크, 강조, 헤더 등) */
   --accent-light: #dbeafe;   /* 포인트 연하게 */
   --border:       #e5e7eb;   /* 구분선 */
   --code-bg:      #f3f4f6;   /* 코드블록 배경 */
-  --nav-bg:       #f9fafb;   /* split 레이아웃 네비 패널 배경 */
 
   /* === 타이포그래피 === */
   --font-sans:    'Inter', 'Pretendard', system-ui, sans-serif;
@@ -52,7 +51,6 @@
   --accent-light: #dbeafe;
   --border:       #e2e8f0;
   --code-bg:      #f1f5f9;
-  --nav-bg:       #f8fafc;
 }
 ```
 
@@ -68,7 +66,6 @@
   --accent-light: #3b2f6e;
   --border:       #313244;
   --code-bg:      #181825;
-  --nav-bg:       #181825;
 }
 ```
 
@@ -84,7 +81,6 @@
   --accent-light: #f0f0f0;
   --border:       #dddddd;
   --code-bg:      #f8f8f8;
-  --nav-bg:       #fafafa;
   --font-sans:    'Helvetica Neue', 'Arial', sans-serif;
   --radius:       0;
 }
@@ -102,8 +98,6 @@
   --accent-light: #d0dce8;
   --border:       #c8d3df;
   --code-bg:      #edf0f4;
-  --nav-bg:       #1e3a5f;
-  --nav-fg:       #ffffff;        /* corporate 전용: 네비 패널 텍스트 */
   --header-bg:    #1e3a5f;        /* corporate 전용: 헤더 배경 */
   --header-fg:    #ffffff;        /* corporate 전용: 헤더 텍스트 */
 }
@@ -111,13 +105,13 @@
 
 ---
 
-## 2. 레이아웃별 HTML 구조 스켈레톤
+## 2. 전환효과(Transition)별 CSS
 
 ### 공통 HTML 래퍼
 
 ```html
 <!DOCTYPE html>
-<html lang="ko" data-theme="default" data-layout="horizontal">
+<html lang="ko" data-theme="default" data-transition="horizontal">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -129,10 +123,13 @@
     /* === 테마 CSS 변수 (위 명세 삽입) === */
     /* ... */
 
-    /* === 레이아웃별 CSS (아래 명세 삽입) === */
+    /* === 전환효과별 CSS (아래 명세 삽입) === */
     /* ... */
 
     /* === 슬라이드 타입별 CSS (아래 명세 삽입) === */
+    /* ... */
+
+    /* === 슬라이드 레이아웃별 CSS (아래 명세 삽입) === */
     /* ... */
   </style>
 </head>
@@ -156,11 +153,11 @@
 
 ---
 
-### 레이아웃: horizontal (좌우 전환)
+### 전환효과: horizontal (좌우 전환)
 
 ```css
-/* data-layout="horizontal" */
-[data-layout="horizontal"] .slideshow {
+/* data-transition="horizontal" */
+[data-transition="horizontal"] .slideshow {
   position: relative;
   width: 100vw;
   height: 100vh;
@@ -168,7 +165,7 @@
   background: var(--bg);
 }
 
-[data-layout="horizontal"] .slide {
+[data-transition="horizontal"] .slide {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
@@ -186,16 +183,16 @@
   will-change: transform;
 }
 
-[data-layout="horizontal"] .slide.active {
+[data-transition="horizontal"] .slide.active {
   transform: translateX(0);
 }
 
-[data-layout="horizontal"] .slide.prev {
+[data-transition="horizontal"] .slide.prev {
   transform: translateX(-100%);
 }
 
 /* 슬라이드 카운터 위치 */
-[data-layout="horizontal"] .slide-counter {
+[data-transition="horizontal"] .slide-counter {
   position: fixed;
   bottom: 1.5rem;
   right: 2rem;
@@ -206,25 +203,13 @@
 }
 ```
 
-```html
-<!-- horizontal 레이아웃 슬라이드 예시 -->
-<div class="slideshow" id="slideshow">
-  <div class="slide active" id="slide-1" data-type="cover">
-    <!-- 슬라이드 내용 -->
-  </div>
-  <div class="slide" id="slide-2" data-type="content">
-    <!-- 슬라이드 내용 -->
-  </div>
-</div>
-```
-
 ---
 
-### 레이아웃: vertical (상하 전환)
+### 전환효과: vertical (상하 전환)
 
 ```css
-/* data-layout="vertical" */
-[data-layout="vertical"] .slideshow {
+/* data-transition="vertical" */
+[data-transition="vertical"] .slideshow {
   position: relative;
   width: 100vw;
   height: 100vh;
@@ -232,7 +217,7 @@
   background: var(--bg);
 }
 
-[data-layout="vertical"] .slide {
+[data-transition="vertical"] .slide {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
@@ -250,15 +235,15 @@
   will-change: transform;
 }
 
-[data-layout="vertical"] .slide.active {
+[data-transition="vertical"] .slide.active {
   transform: translateY(0);
 }
 
-[data-layout="vertical"] .slide.prev {
+[data-transition="vertical"] .slide.prev {
   transform: translateY(-100%);
 }
 
-[data-layout="vertical"] .slide-counter {
+[data-transition="vertical"] .slide-counter {
   position: fixed;
   bottom: 1.5rem;
   right: 2rem;
@@ -271,80 +256,19 @@
 
 ---
 
-### 레이아웃: split (왼쪽 네비 패널 + 오른쪽 콘텐츠)
+### 전환효과: fade (페이드 전환)
 
 ```css
-/* data-layout="split" */
-[data-layout="split"] body {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
-
-/* 왼쪽 네비게이션 패널 */
-[data-layout="split"] .split-nav {
-  width: 260px;
-  min-width: 200px;
-  flex-shrink: 0;
-  background: var(--nav-bg);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 1.5rem 1rem;
-  gap: 0.25rem;
-  z-index: 10;
-}
-
-/* corporate 테마 전용 nav 색상 */
-[data-theme="corporate"][data-layout="split"] .split-nav {
-  background: var(--nav-bg);
-  color: var(--nav-fg, #fff);
-}
-
-[data-layout="split"] .split-nav-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--fg-muted);
-  padding: 0.5rem 0.75rem 1rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 0.5rem;
-}
-
-[data-layout="split"] .split-nav-item {
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius);
-  font-size: var(--size-small);
-  color: var(--fg-muted);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-[data-layout="split"] .split-nav-item:hover {
-  background: var(--accent-light);
-  color: var(--accent);
-}
-
-[data-layout="split"] .split-nav-item.active {
-  background: var(--accent-light);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-/* 오른쪽 콘텐츠 영역 */
-[data-layout="split"] .slideshow {
-  flex: 1;
+/* data-transition="fade" */
+[data-transition="fade"] .slideshow {
   position: relative;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   background: var(--bg);
 }
 
-[data-layout="split"] .slide {
+[data-transition="fade"] .slide {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
@@ -362,12 +286,12 @@
   transition: opacity var(--transition);
 }
 
-[data-layout="split"] .slide.active {
+[data-transition="fade"] .slide.active {
   opacity: 1;
   pointer-events: auto;
 }
 
-[data-layout="split"] .slide-counter {
+[data-transition="fade"] .slide-counter {
   position: fixed;
   bottom: 1.5rem;
   right: 2rem;
@@ -376,31 +300,6 @@
   font-family: var(--font-sans);
   z-index: 100;
 }
-```
-
-```html
-<!-- split 레이아웃 HTML 구조 -->
-<!DOCTYPE html>
-<html lang="ko" data-theme="default" data-layout="split">
-<head><!-- ... --></head>
-<body>
-  <!-- 왼쪽 패널 (JS가 자동 생성) -->
-  <nav class="split-nav" id="splitNav">
-    <div class="split-nav-title">목차</div>
-    <!-- JS가 슬라이드 제목 기반으로 채움 -->
-  </nav>
-
-  <!-- 오른쪽 콘텐츠 -->
-  <div class="slideshow" id="slideshow">
-    <div class="slide active" id="slide-1" data-type="cover"><!-- ... --></div>
-    <div class="slide" id="slide-2" data-type="content"><!-- ... --></div>
-  </div>
-
-  <div class="slide-counter" id="slideCounter">
-    <span id="currentSlide">1</span> / <span id="totalSlides">1</span>
-  </div>
-</body>
-</html>
 ```
 
 ---
@@ -467,19 +366,6 @@
 }
 ```
 
-```html
-<!-- cover 슬라이드 HTML -->
-<div class="slide active" id="slide-1" data-type="cover">
-  <span class="cover-eyebrow">{{EYEBROW}}</span>
-  <h1>{{TITLE}}</h1>
-  <p class="subtitle">{{SUBTITLE}}</p>
-  <div class="meta">
-    <span>{{AUTHOR}}</span>
-    <span>{{DATE}}</span>
-  </div>
-</div>
-```
-
 ---
 
 ### data-type="toc" — 목차 슬라이드
@@ -533,18 +419,6 @@
 .slide[data-type="toc"] ol li:hover {
   color: var(--accent);
 }
-```
-
-```html
-<!-- toc 슬라이드 HTML -->
-<div class="slide" id="slide-2" data-type="toc">
-  <h2>목차</h2>
-  <ol>
-    <li data-goto="slide-3">섹션 1 제목</li>
-    <li data-goto="slide-5">섹션 2 제목</li>
-    <li data-goto="slide-8">섹션 3 제목</li>
-  </ol>
-</div>
 ```
 
 ---
@@ -601,15 +475,6 @@
 [data-theme="corporate"] .slide[data-type="divider"] {
   background: var(--accent);
 }
-```
-
-```html
-<!-- divider 슬라이드 HTML -->
-<div class="slide" id="slide-3" data-type="divider">
-  <span class="divider-number">01</span>
-  <h2>섹션 제목</h2>
-  <p class="divider-sub">간략한 섹션 설명 (선택)</p>
-</div>
 ```
 
 ---
@@ -725,14 +590,6 @@
   max-width: 65ch;
 }
 
-/* 2컬럼 레이아웃 유틸리티 */
-.slide[data-type="content"] .cols-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  width: 100%;
-}
-
 /* 이미지 */
 .slide[data-type="content"] img {
   max-width: 100%;
@@ -765,18 +622,6 @@
 .slide[data-type="content"] tr:nth-child(even) td {
   background: var(--bg-alt);
 }
-```
-
-```html
-<!-- content 슬라이드 HTML -->
-<div class="slide" id="slide-4" data-type="content">
-  <h3>슬라이드 제목</h3>
-  <p>본문 내용...</p>
-  <ul>
-    <li>항목 1</li>
-    <li>항목 2</li>
-  </ul>
-</div>
 ```
 
 ---
@@ -836,17 +681,809 @@
 }
 ```
 
-```html
-<!-- closing 슬라이드 HTML -->
-<div class="slide" id="slide-10" data-type="closing">
-  <div class="closing-icon">🎉</div>
-  <h2>감사합니다</h2>
-  <p class="closing-message">질문이 있으시면 언제든지 연락주세요.</p>
-  <div class="closing-contact">
-    <span>{{EMAIL}}</span>
-    <span>{{GITHUB}}</span>
-  </div>
-</div>
+---
+
+## 3.5. 슬라이드 per-slide 레이아웃 CSS
+
+각 슬라이드의 `data-layout` 속성에 따라 적용되는 레이아웃 CSS다.
+콘텐츠 자동 감지 결과가 이 속성에 반영된다.
+
+### 구조형 (4개)
+
+```css
+/* ── title-cover ── */
+.slide[data-layout="title-cover"] {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* ── section-divider ── */
+.slide[data-layout="section-divider"] {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+/* ── agenda ── */
+.slide[data-layout="agenda"] {
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* ── end ── */
+.slide[data-layout="end"] {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+```
+
+### 콘텐츠형 (9개)
+
+```css
+/* ── default ── */
+.slide[data-layout="default"] {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.slide[data-layout="default"] h3 {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+/* ── statement ── */
+.slide[data-layout="statement"] {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.slide[data-layout="statement"] p {
+  font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.3;
+  max-width: 20ch;
+  color: var(--fg);
+}
+
+/* ── quote ── */
+.slide[data-layout="quote"] {
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.slide[data-layout="quote"] blockquote {
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-style: italic;
+  line-height: 1.6;
+  border-left: 4px solid var(--accent);
+  padding: 1.5rem 2rem;
+  background: var(--accent-light);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  max-width: 50ch;
+  color: var(--fg);
+}
+
+.slide[data-layout="quote"] blockquote p {
+  font-size: inherit;
+  margin-bottom: 0;
+}
+
+.slide[data-layout="quote"] .quote-author {
+  font-size: var(--size-body);
+  color: var(--fg-muted);
+  margin-top: 1rem;
+  font-style: normal;
+}
+
+/* ── fact ── */
+.slide[data-layout="fact"] {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.slide[data-layout="fact"] .fact-number {
+  font-size: clamp(3rem, 10vw, 8rem);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.slide[data-layout="fact"] .fact-label {
+  font-size: var(--size-h3);
+  color: var(--fg-muted);
+  max-width: 30ch;
+}
+
+/* ── intro-profile ── */
+.slide[data-layout="intro-profile"] {
+  justify-content: center;
+  align-items: center;
+  flex-direction: row;
+  gap: 3rem;
+}
+
+.slide[data-layout="intro-profile"] img {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  flex-shrink: 0;
+}
+
+.slide[data-layout="intro-profile"] .profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.slide[data-layout="intro-profile"] .profile-name {
+  font-size: var(--size-h2);
+  font-weight: 800;
+  color: var(--fg);
+}
+
+.slide[data-layout="intro-profile"] .profile-title {
+  font-size: var(--size-body);
+  color: var(--fg-muted);
+}
+
+/* ── two-cols ── */
+.slide[data-layout="two-cols"] .cols-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  height: 100%;
+  align-items: start;
+}
+
+.slide[data-layout="two-cols"] .cols-container .col {
+  padding: 0 1rem;
+}
+
+.slide[data-layout="two-cols"] .cols-container .col:first-child {
+  border-right: 1px solid var(--border);
+}
+
+/* ── two-cols-header ── */
+.slide[data-layout="two-cols-header"] h3 {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.slide[data-layout="two-cols-header"] .cols-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  flex: 1;
+  align-items: start;
+}
+
+.slide[data-layout="two-cols-header"] .cols-container .col {
+  padding: 0 1rem;
+}
+
+.slide[data-layout="two-cols-header"] .cols-container .col:first-child {
+  border-right: 1px solid var(--border);
+}
+
+/* ── three-cols ── */
+.slide[data-layout="three-cols"] .cols-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  width: 100%;
+  height: 100%;
+  align-items: start;
+}
+
+.slide[data-layout="three-cols"] .cols-container .col {
+  padding: 0 0.75rem;
+}
+
+.slide[data-layout="three-cols"] .cols-container .col:not(:last-child) {
+  border-right: 1px solid var(--border);
+}
+
+.slide[data-layout="three-cols"] .cols-container .col h3 {
+  font-size: var(--size-body);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+/* ── icon-grid ── */
+.slide[data-layout="icon-grid"] .grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.slide[data-layout="icon-grid"] .grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.slide[data-layout="icon-grid"] .grid-item .icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.slide[data-layout="icon-grid"] .grid-item .grid-label {
+  font-size: var(--size-body);
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.slide[data-layout="icon-grid"] .grid-item .grid-desc {
+  font-size: var(--size-small);
+  color: var(--fg-muted);
+  margin-top: 0.25rem;
+}
+
+/* ── list ── */
+.slide[data-layout="list"] {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.slide[data-layout="list"] ul,
+.slide[data-layout="list"] ol {
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 70ch;
+}
+
+.slide[data-layout="list"] li {
+  font-size: var(--size-body);
+  line-height: 1.6;
+}
+
+/* ── center ── */
+.slide[data-layout="center"] {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.slide[data-layout="center"] h3 {
+  font-size: var(--size-h2);
+  border-bottom: none;
+  margin-bottom: 0.5rem;
+}
+```
+
+### 데이터형 (4개)
+
+```css
+/* ── data-chart ── */
+.slide[data-layout="data-chart"] {
+  justify-content: flex-start;
+  align-items: center;
+  padding: var(--pad-sm) var(--pad);
+}
+
+.slide[data-layout="data-chart"] h3 {
+  font-size: var(--size-body);
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+.slide[data-layout="data-chart"] .chart-area {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+}
+
+.slide[data-layout="data-chart"] .chart-area svg {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* ── comparison ── */
+.slide[data-layout="comparison"] .compare-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  width: 100%;
+  flex: 1;
+}
+
+.slide[data-layout="comparison"] .compare-side {
+  padding: 2rem;
+}
+
+.slide[data-layout="comparison"] .compare-side:first-child {
+  background: var(--accent-light);
+  border-radius: var(--radius) 0 0 var(--radius);
+}
+
+.slide[data-layout="comparison"] .compare-side:last-child {
+  background: var(--bg-alt);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.slide[data-layout="comparison"] .compare-side h4 {
+  font-size: var(--size-h3);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--fg);
+}
+
+/* ── table-data ── */
+.slide[data-layout="table-data"] {
+  justify-content: flex-start;
+  padding: var(--pad-sm) var(--pad);
+}
+
+.slide[data-layout="table-data"] h3 {
+  font-size: var(--size-body);
+  margin-bottom: 0.75rem;
+}
+
+.slide[data-layout="table-data"] table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(var(--size-small) * 0.95);
+}
+
+.slide[data-layout="table-data"] th {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: calc(var(--size-small) * 0.9);
+}
+
+.slide[data-layout="table-data"] td {
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.slide[data-layout="table-data"] tr:nth-child(even) td {
+  background: var(--bg-alt);
+}
+
+/* ── dashboard ── */
+.slide[data-layout="dashboard"] {
+  justify-content: flex-start;
+  padding: var(--pad-sm);
+}
+
+.slide[data-layout="dashboard"] h3 {
+  font-size: var(--size-body);
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+.slide[data-layout="dashboard"] .kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.slide[data-layout="dashboard"] .kpi-card {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  text-align: center;
+}
+
+.slide[data-layout="dashboard"] .kpi-card .kpi-value {
+  font-size: var(--size-h2);
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.slide[data-layout="dashboard"] .kpi-card .kpi-label {
+  font-size: var(--size-small);
+  color: var(--fg-muted);
+  margin-top: 0.25rem;
+}
+
+.slide[data-layout="dashboard"] table {
+  width: 100%;
+  font-size: calc(var(--size-small) * 0.9);
+}
+```
+
+### 시각형 (5개)
+
+```css
+/* ── fullbleed-image ── */
+.slide[data-layout="fullbleed-image"] {
+  padding: 0;
+  position: relative;
+}
+
+.slide[data-layout="fullbleed-image"] img {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  border: none;
+}
+
+.slide[data-layout="fullbleed-image"] .overlay-text {
+  position: relative;
+  z-index: 1;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  padding: 1.5rem 2rem;
+  border-radius: var(--radius);
+  margin: auto;
+  text-align: center;
+}
+
+/* ── image-left ── */
+.slide[data-layout="image-left"] {
+  flex-direction: row;
+  padding: 0;
+  gap: 0;
+}
+
+.slide[data-layout="image-left"] .image-panel {
+  width: 40%;
+  height: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.slide[data-layout="image-left"] .image-panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  border: none;
+}
+
+.slide[data-layout="image-left"] .text-panel {
+  flex: 1;
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+/* ── image-right ── */
+.slide[data-layout="image-right"] {
+  flex-direction: row;
+  padding: 0;
+  gap: 0;
+}
+
+.slide[data-layout="image-right"] .text-panel {
+  flex: 1;
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.slide[data-layout="image-right"] .image-panel {
+  width: 40%;
+  height: 100%;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.slide[data-layout="image-right"] .image-panel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  border: none;
+}
+
+/* ── asymmetric-split ── */
+.slide[data-layout="asymmetric-split"] .cols-container {
+  display: grid;
+  gap: 2rem;
+  width: 100%;
+  height: 100%;
+  align-items: start;
+}
+
+.slide[data-layout="asymmetric-split"] .cols-container.ratio-60-40 {
+  grid-template-columns: 3fr 2fr;
+}
+
+.slide[data-layout="asymmetric-split"] .cols-container.ratio-70-30 {
+  grid-template-columns: 7fr 3fr;
+}
+
+.slide[data-layout="asymmetric-split"] .cols-container.ratio-30-70 {
+  grid-template-columns: 3fr 7fr;
+}
+
+.slide[data-layout="asymmetric-split"] .cols-container.ratio-40-60 {
+  grid-template-columns: 2fr 3fr;
+}
+
+.slide[data-layout="asymmetric-split"] .cols-container .col {
+  padding: 0 1rem;
+}
+
+/* ── iframe-embed ── */
+.slide[data-layout="iframe-embed"] {
+  padding: var(--pad-sm);
+}
+
+.slide[data-layout="iframe-embed"] h3 {
+  font-size: var(--size-body);
+  margin-bottom: 0.5rem;
+}
+
+.slide[data-layout="iframe-embed"] iframe {
+  flex: 1;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+```
+
+### 특수형 (3개)
+
+```css
+/* ── code-focus ── */
+.slide[data-layout="code-focus"] {
+  justify-content: flex-start;
+  padding: var(--pad-sm) var(--pad);
+}
+
+.slide[data-layout="code-focus"] h3 {
+  font-size: var(--size-body);
+  margin-bottom: 0.5rem;
+}
+
+.slide[data-layout="code-focus"] pre {
+  flex: 1;
+  width: 100%;
+  overflow: auto;
+  font-size: clamp(0.7rem, 1.5vw, 0.95rem);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── timeline ── */
+.slide[data-layout="timeline"] {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.slide[data-layout="timeline"] .timeline-container {
+  position: relative;
+  padding-left: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.slide[data-layout="timeline"] .timeline-container::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+}
+
+.slide[data-layout="timeline"] .timeline-item {
+  position: relative;
+}
+
+.slide[data-layout="timeline"] .timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -1.95rem;
+  top: 0.4rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+}
+
+.slide[data-layout="timeline"] .timeline-date {
+  font-size: var(--size-small);
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+
+.slide[data-layout="timeline"] .timeline-content {
+  font-size: var(--size-body);
+  color: var(--fg);
+}
+
+/* ── steps-process ── */
+.slide[data-layout="steps-process"] .steps-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.slide[data-layout="steps-process"] .step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 0.75rem;
+  position: relative;
+}
+
+.slide[data-layout="steps-process"] .step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -0.5rem;
+  top: 1.25rem;
+  width: 1rem;
+  height: 2px;
+  background: var(--accent);
+}
+
+.slide[data-layout="steps-process"] .step-number {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--size-body);
+  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+}
+
+.slide[data-layout="steps-process"] .step-label {
+  font-size: var(--size-body);
+  font-weight: 600;
+  color: var(--fg);
+  margin-bottom: 0.25rem;
+}
+
+.slide[data-layout="steps-process"] .step-desc {
+  font-size: var(--size-small);
+  color: var(--fg-muted);
+}
+```
+
+### 다이어그램형 (3개)
+
+```css
+/* ── diagram ── */
+.slide[data-layout="diagram"] {
+  justify-content: flex-start;
+  align-items: center;
+  padding: var(--pad-sm) var(--pad);
+}
+
+.slide[data-layout="diagram"] h3 {
+  font-size: var(--size-body);
+  margin-bottom: 0.5rem;
+  width: 100%;
+}
+
+.slide[data-layout="diagram"] .diagram-area {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+  overflow: auto;
+}
+
+.slide[data-layout="diagram"] .diagram-area svg {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* ── diagram-fullbleed ── */
+.slide[data-layout="diagram-fullbleed"] {
+  padding: 0;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+}
+
+.slide[data-layout="diagram-fullbleed"] h3 {
+  position: absolute;
+  top: 1rem;
+  left: 1.5rem;
+  font-size: var(--size-small);
+  color: var(--fg-muted);
+  border-bottom: none;
+  margin: 0;
+  z-index: 1;
+  background: rgba(var(--bg), 0.8);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+.slide[data-layout="diagram-fullbleed"] .diagram-area {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.slide[data-layout="diagram-fullbleed"] .diagram-area svg {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* ── diagram-split ── */
+.slide[data-layout="diagram-split"] {
+  flex-direction: row;
+  padding: 0;
+  gap: 0;
+}
+
+.slide[data-layout="diagram-split"] .diagram-panel {
+  width: 60%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  overflow: auto;
+}
+
+.slide[data-layout="diagram-split"] .diagram-panel svg {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.slide[data-layout="diagram-split"] .text-panel {
+  width: 40%;
+  height: 100%;
+  padding: var(--pad);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  background: var(--bg-alt);
+}
 ```
 
 ---
@@ -861,7 +1498,7 @@
   const counterEl  = document.getElementById('slideCounter');
   const currentEl  = document.getElementById('currentSlide');
   const totalEl    = document.getElementById('totalSlides');
-  const layout     = document.documentElement.dataset.layout || 'horizontal';
+  const transition = document.documentElement.dataset.transition || 'horizontal';
 
   // 모든 슬라이드 수집
   const slides = Array.from(slideshow.querySelectorAll('.slide'));
@@ -887,21 +1524,14 @@
     if (totalEl)   totalEl.textContent   = slides.length;
   }
 
-  // split 레이아웃: 네비 패널 아이템 활성화
-  function updateSplitNav(idx) {
-    if (layout !== 'split') return;
-    const items = document.querySelectorAll('.split-nav-item');
-    items.forEach((item, i) => {
-      item.classList.toggle('active', i === idx);
-    });
-  }
-
   function goTo(idx, skipHash) {
     if (idx < 0 || idx >= slides.length) return;
 
     const prev = current;
     slides[prev].classList.remove('active');
-    if (layout !== 'split') {
+
+    // fade 전환은 prev 클래스 불필요 (opacity 기반)
+    if (transition !== 'fade') {
       slides[prev].classList.add('prev');
     }
 
@@ -910,14 +1540,15 @@
     slides[current].classList.add('active');
 
     // prev 클래스 정리 (전환 완료 후)
-    setTimeout(() => {
-      slides.forEach((s, i) => {
-        if (i !== current) s.classList.remove('prev');
-      });
-    }, 400);
+    if (transition !== 'fade') {
+      setTimeout(() => {
+        slides.forEach((s, i) => {
+          if (i !== current) s.classList.remove('prev');
+        });
+      }, 400);
+    }
 
     updateCounter(current);
-    updateSplitNav(current);
     if (!skipHash) updateHash(current);
   }
 
@@ -950,11 +1581,7 @@
   });
 
   // ── 클릭 네비게이션 ──────────────────────────────
-  // split 레이아웃은 slideshow 영역 클릭만 처리
-  const clickTarget = layout === 'split' ? slideshow : document;
-  clickTarget.addEventListener('click', function (e) {
-    // split-nav 클릭 무시 (별도 처리)
-    if (e.target.closest('.split-nav')) return;
+  document.addEventListener('click', function (e) {
     // 링크 클릭 무시
     if (e.target.tagName === 'A') return;
     // TOC 항목 클릭 처리
@@ -967,26 +1594,6 @@
     // 일반 클릭 → 다음 슬라이드
     next();
   });
-
-  // ── split 네비 패널 자동 생성 ──────────────────────
-  function buildSplitNav() {
-    if (layout !== 'split') return;
-    const nav = document.getElementById('splitNav');
-    if (!nav) return;
-    slides.forEach((slide, i) => {
-      const heading = slide.querySelector('h1, h2, h3');
-      const label   = heading ? heading.textContent.trim() : ('슬라이드 ' + (i + 1));
-      const item    = document.createElement('div');
-      item.className = 'split-nav-item';
-      item.textContent = label;
-      item.dataset.index = i;
-      item.addEventListener('click', function () { goTo(i); });
-      nav.appendChild(item);
-    });
-  }
-
-  // ── TOC 항목 클릭 핸들러 (data-goto) ─────────────
-  // (위 clickTarget listener에서 통합 처리됨)
 
   // ── URL hash 변경 감지 ────────────────────────────
   window.addEventListener('hashchange', function () {
@@ -1007,7 +1614,7 @@
     const dx = e.changedTouches[0].screenX - touchStartX;
     const dy = e.changedTouches[0].screenY - touchStartY;
     const threshold = 50;
-    if (layout === 'vertical') {
+    if (transition === 'vertical') {
       if (dy < -threshold) next();
       else if (dy > threshold) prev();
     } else {
@@ -1026,18 +1633,17 @@
       if (!s.id) s.id = 'slide-' + (i + 1);
     });
 
-    buildSplitNav();
-
     // 초기 슬라이드 결정
     const startIdx = hashToIndex(location.hash);
-    // 첫 슬라이드 이전 슬라이드들을 prev 상태로 초기화
-    for (let i = 0; i < startIdx; i++) {
-      slides[i].classList.add('prev');
+    // 첫 슬라이드 이전 슬라이드들을 prev 상태로 초기화 (transform 전환용)
+    if (transition !== 'fade') {
+      for (let i = 0; i < startIdx; i++) {
+        slides[i].classList.add('prev');
+      }
     }
     slides[startIdx].classList.add('active');
     current = startIdx;
     updateCounter(current);
-    updateSplitNav(current);
   }
 
   init();
@@ -1048,12 +1654,12 @@
 
 ## 5. 완전한 단일 파일 HTML 템플릿 (레퍼런스 구현)
 
-아래는 `horizontal` + `default` 테마를 사용하는 최소 완전 구현이다.
-실제 생성 시 `data-theme`과 `data-layout`을 치환하면 된다.
+아래는 `horizontal` 전환 + `default` 테마를 사용하는 최소 완전 구현이다.
+실제 생성 시 `data-theme`과 `data-transition`을 치환하고, 각 슬라이드에 `data-layout`을 부여한다.
 
 ```html
 <!DOCTYPE html>
-<html lang="ko" data-theme="{{THEME}}" data-layout="{{LAYOUT}}">
+<html lang="ko" data-theme="{{THEME}}" data-transition="{{TRANSITION}}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -1067,7 +1673,7 @@
     :root {
       --bg: #ffffff; --bg-alt: #f8fafc; --fg: #0f172a; --fg-muted: #64748b;
       --accent: #2563eb; --accent-light: #dbeafe; --border: #e2e8f0;
-      --code-bg: #f1f5f9; --nav-bg: #f8fafc;
+      --code-bg: #f1f5f9;
       --font-sans: 'Inter', system-ui, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
       --size-title: clamp(2rem,5vw,3.5rem); --size-h2: clamp(1.5rem,3vw,2.25rem);
@@ -1078,7 +1684,7 @@
     [data-theme="dark"] {
       --bg:#1e1e2e; --bg-alt:#181825; --fg:#cdd6f4; --fg-muted:#a6adc8;
       --accent:#a78bfa; --accent-light:#3b2f6e; --border:#313244;
-      --code-bg:#181825; --nav-bg:#181825;
+      --code-bg:#181825;
     }
     [data-theme="minimal"] {
       --bg:#fff; --bg-alt:#fff; --fg:#000; --fg-muted:#555;
@@ -1088,60 +1694,43 @@
     [data-theme="corporate"] {
       --bg:#f4f6f9; --bg-alt:#e8ecf2; --fg:#1a2332; --fg-muted:#5a6a7e;
       --accent:#1e3a5f; --accent-light:#d0dce8; --border:#c8d3df;
-      --code-bg:#edf0f4; --nav-bg:#1e3a5f;
+      --code-bg:#edf0f4; --header-bg:#1e3a5f; --header-fg:#ffffff;
     }
 
     /* ── Slideshow 기본 ── */
     .slideshow { position:relative; width:100vw; height:100vh; overflow:hidden; background:var(--bg); }
 
-    /* ── horizontal / vertical 공통 슬라이드 ── */
+    /* ── 공통 슬라이드 ── */
     .slide {
       position:absolute; top:0; left:0; width:100%; height:100%;
       display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
       padding:var(--pad); background:var(--bg); color:var(--fg); font-family:var(--font-sans);
-      will-change:transform; transition:transform var(--transition);
+      will-change:transform,opacity;
     }
 
-    /* horizontal */
-    [data-layout="horizontal"] .slide             { transform:translateX(100%); }
-    [data-layout="horizontal"] .slide.active      { transform:translateX(0); }
-    [data-layout="horizontal"] .slide.prev        { transform:translateX(-100%); }
+    /* ── 전환효과: horizontal ── */
+    [data-transition="horizontal"] .slide { transform:translateX(100%); transition:transform var(--transition); }
+    [data-transition="horizontal"] .slide.active { transform:translateX(0); }
+    [data-transition="horizontal"] .slide.prev { transform:translateX(-100%); }
 
-    /* vertical */
-    [data-layout="vertical"] .slide               { transform:translateY(100%); }
-    [data-layout="vertical"] .slide.active        { transform:translateY(0); }
-    [data-layout="vertical"] .slide.prev          { transform:translateY(-100%); }
+    /* ── 전환효과: vertical ── */
+    [data-transition="vertical"] .slide { transform:translateY(100%); transition:transform var(--transition); }
+    [data-transition="vertical"] .slide.active { transform:translateY(0); }
+    [data-transition="vertical"] .slide.prev { transform:translateY(-100%); }
 
-    /* split */
-    [data-layout="split"] body { display:flex; height:100vh; overflow:hidden; }
-    [data-layout="split"] .split-nav {
-      width:260px; flex-shrink:0; background:var(--nav-bg); border-right:1px solid var(--border);
-      display:flex; flex-direction:column; overflow-y:auto; padding:1.5rem 1rem; gap:.25rem;
-    }
-    [data-theme="corporate"][data-layout="split"] .split-nav { color:#fff; }
-    [data-layout="split"] .split-nav-title {
-      font-size:.75rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-      color:var(--fg-muted); padding:.5rem .75rem 1rem; border-bottom:1px solid var(--border); margin-bottom:.5rem;
-    }
-    [data-theme="corporate"][data-layout="split"] .split-nav-title { color:rgba(255,255,255,.5); border-color:rgba(255,255,255,.2); }
-    [data-layout="split"] .split-nav-item {
-      padding:.5rem .75rem; border-radius:var(--radius); font-size:var(--size-small);
-      color:var(--fg-muted); cursor:pointer; transition:background .2s,color .2s;
-    }
-    [data-theme="corporate"][data-layout="split"] .split-nav-item { color:rgba(255,255,255,.7); }
-    [data-layout="split"] .split-nav-item:hover,
-    [data-layout="split"] .split-nav-item.active { background:var(--accent-light); color:var(--accent); }
-    [data-theme="corporate"][data-layout="split"] .split-nav-item:hover,
-    [data-theme="corporate"][data-layout="split"] .split-nav-item.active { background:rgba(255,255,255,.15); color:#fff; }
-    [data-layout="split"] .slideshow { flex:1; position:relative; overflow:hidden; }
-    [data-layout="split"] .slide { transition:opacity var(--transition); transform:none !important; opacity:0; pointer-events:none; }
-    [data-layout="split"] .slide.active { opacity:1; pointer-events:auto; }
+    /* ── 전환효과: fade ── */
+    [data-transition="fade"] .slide { opacity:0; pointer-events:none; transition:opacity var(--transition); }
+    [data-transition="fade"] .slide.active { opacity:1; pointer-events:auto; }
 
     /* ── 슬라이드 카운터 ── */
     .slide-counter {
       position:fixed; bottom:1.5rem; right:2rem; font-size:var(--size-small);
       color:var(--fg-muted); font-family:var(--font-sans); z-index:100; user-select:none;
     }
+
+    /* ══════════════════════════════════════════════════
+       슬라이드 타입별 CSS
+       ══════════════════════════════════════════════════ */
 
     /* ── cover ── */
     .slide[data-type="cover"] { justify-content:center; align-items:center; text-align:center; }
@@ -1173,6 +1762,7 @@
     .slide[data-type="content"] { justify-content:flex-start; overflow-y:auto; }
     .slide[data-type="content"] h3 { font-size:var(--size-h3); font-weight:700; color:var(--fg); margin-bottom:1.5rem; padding-bottom:.75rem; border-bottom:2px solid var(--accent); width:100%; }
     [data-theme="corporate"] .slide[data-type="content"] h3 { background:var(--accent); color:#fff; padding:.75rem var(--pad-sm); border-bottom:none; margin:calc(-1*var(--pad)) calc(-1*var(--pad)) 1.5rem; width:calc(100% + 2*var(--pad)); font-size:var(--size-body); font-weight:600; }
+    [data-theme="corporate"] .slide[data-type="content"]::before { content:''; display:block; height:4px; background:var(--accent); position:absolute; top:0; left:0; right:0; }
     .slide[data-type="content"] p { font-size:var(--size-body); line-height:1.7; color:var(--fg); margin-bottom:1rem; max-width:70ch; }
     .slide[data-type="content"] ul, .slide[data-type="content"] ol { padding-left:1.5rem; display:flex; flex-direction:column; gap:.5rem; max-width:70ch; }
     .slide[data-type="content"] li { font-size:var(--size-body); line-height:1.6; color:var(--fg); }
@@ -1181,7 +1771,7 @@
     .slide[data-type="content"] pre { background:var(--code-bg); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; overflow-x:auto; font-family:var(--font-mono); font-size:.85em; line-height:1.6; width:100%; margin:1rem 0; }
     .slide[data-type="content"] pre code { background:none; border:none; padding:0; color:var(--fg); }
     .slide[data-type="content"] blockquote { border-left:3px solid var(--accent); padding:.75rem 1.25rem; background:var(--accent-light); border-radius:0 var(--radius) var(--radius) 0; font-style:italic; color:var(--fg-muted); margin:1rem 0; }
-    .slide[data-type="content"] .cols-2 { display:grid; grid-template-columns:1fr 1fr; gap:2rem; width:100%; }
+    .slide[data-type="content"] img { max-width:100%; height:auto; border-radius:var(--radius); border:1px solid var(--border); }
     .slide[data-type="content"] table { width:100%; border-collapse:collapse; font-size:var(--size-small); margin:1rem 0; }
     .slide[data-type="content"] th { background:var(--accent); color:#fff; padding:.6rem .9rem; text-align:left; font-weight:600; }
     .slide[data-type="content"] td { padding:.5rem .9rem; border-bottom:1px solid var(--border); color:var(--fg); }
@@ -1189,6 +1779,7 @@
 
     /* ── closing ── */
     .slide[data-type="closing"] { justify-content:center; align-items:center; text-align:center; }
+    .slide[data-type="closing"] .closing-icon { font-size:3rem; margin-bottom:1.5rem; opacity:.6; }
     .slide[data-type="closing"] h2 { font-size:var(--size-h2); font-weight:800; color:var(--fg); margin-bottom:1rem; }
     .slide[data-type="closing"] .closing-message { font-size:var(--size-body); color:var(--fg-muted); max-width:40ch; line-height:1.7; margin-bottom:2rem; }
     .slide[data-type="closing"] .closing-contact { display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; font-size:var(--size-small); color:var(--accent); }
@@ -1196,14 +1787,157 @@
     [data-theme="corporate"] .slide[data-type="closing"] h2,
     [data-theme="corporate"] .slide[data-type="closing"] .closing-message { color:rgba(255,255,255,.9); }
     [data-theme="corporate"] .slide[data-type="closing"] .closing-contact { color:#7eb8e8; }
+
+    /* ══════════════════════════════════════════════════
+       슬라이드 per-slide 레이아웃 CSS (data-layout)
+       ══════════════════════════════════════════════════ */
+
+    /* ── 구조형 ── */
+    .slide[data-layout="title-cover"] { justify-content:center; align-items:center; text-align:center; }
+    .slide[data-layout="section-divider"] { justify-content:center; align-items:center; text-align:center; }
+    .slide[data-layout="agenda"] { justify-content:center; align-items:flex-start; }
+    .slide[data-layout="end"] { justify-content:center; align-items:center; text-align:center; }
+
+    /* ── 콘텐츠형 ── */
+    .slide[data-layout="default"] { justify-content:flex-start; align-items:flex-start; }
+    .slide[data-layout="default"] h3 { width:100%; margin-bottom:1.5rem; }
+
+    .slide[data-layout="statement"] { justify-content:center; align-items:center; text-align:center; }
+    .slide[data-layout="statement"] p { font-size:clamp(1.5rem,3.5vw,2.5rem); font-weight:700; line-height:1.3; max-width:20ch; color:var(--fg); }
+
+    .slide[data-layout="quote"] { justify-content:center; align-items:flex-start; }
+    .slide[data-layout="quote"] blockquote { font-size:clamp(1.2rem,2.5vw,1.8rem); font-style:italic; line-height:1.6; border-left:4px solid var(--accent); padding:1.5rem 2rem; background:var(--accent-light); border-radius:0 var(--radius) var(--radius) 0; max-width:50ch; color:var(--fg); }
+    .slide[data-layout="quote"] blockquote p { font-size:inherit; margin-bottom:0; }
+    .slide[data-layout="quote"] .quote-author { font-size:var(--size-body); color:var(--fg-muted); margin-top:1rem; font-style:normal; }
+
+    .slide[data-layout="fact"] { justify-content:center; align-items:center; text-align:center; }
+    .slide[data-layout="fact"] .fact-number { font-size:clamp(3rem,10vw,8rem); font-weight:900; line-height:1; color:var(--accent); margin-bottom:1rem; }
+    .slide[data-layout="fact"] .fact-label { font-size:var(--size-h3); color:var(--fg-muted); max-width:30ch; }
+
+    .slide[data-layout="intro-profile"] { justify-content:center; align-items:center; flex-direction:row; gap:3rem; }
+    .slide[data-layout="intro-profile"] img { width:180px; height:180px; border-radius:50%; object-fit:cover; border:3px solid var(--accent); flex-shrink:0; }
+    .slide[data-layout="intro-profile"] .profile-info { display:flex; flex-direction:column; gap:.5rem; }
+    .slide[data-layout="intro-profile"] .profile-name { font-size:var(--size-h2); font-weight:800; color:var(--fg); }
+    .slide[data-layout="intro-profile"] .profile-title { font-size:var(--size-body); color:var(--fg-muted); }
+
+    .slide[data-layout="two-cols"] .cols-container { display:grid; grid-template-columns:1fr 1fr; gap:2rem; width:100%; height:100%; align-items:start; }
+    .slide[data-layout="two-cols"] .cols-container .col { padding:0 1rem; }
+    .slide[data-layout="two-cols"] .cols-container .col:first-child { border-right:1px solid var(--border); }
+
+    .slide[data-layout="two-cols-header"] h3 { width:100%; margin-bottom:1.5rem; }
+    .slide[data-layout="two-cols-header"] .cols-container { display:grid; grid-template-columns:1fr 1fr; gap:2rem; width:100%; flex:1; align-items:start; }
+    .slide[data-layout="two-cols-header"] .cols-container .col { padding:0 1rem; }
+    .slide[data-layout="two-cols-header"] .cols-container .col:first-child { border-right:1px solid var(--border); }
+
+    .slide[data-layout="three-cols"] .cols-container { display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; width:100%; height:100%; align-items:start; }
+    .slide[data-layout="three-cols"] .cols-container .col { padding:0 .75rem; }
+    .slide[data-layout="three-cols"] .cols-container .col:not(:last-child) { border-right:1px solid var(--border); }
+    .slide[data-layout="three-cols"] .cols-container .col h3 { font-size:var(--size-body); font-weight:700; margin-bottom:1rem; padding-bottom:.5rem; border-bottom:2px solid var(--accent); }
+
+    .slide[data-layout="icon-grid"] .grid-container { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1.5rem; width:100%; margin-top:1rem; }
+    .slide[data-layout="icon-grid"] .grid-item { display:flex; flex-direction:column; align-items:center; text-align:center; padding:1.5rem 1rem; background:var(--bg-alt); border-radius:var(--radius); border:1px solid var(--border); }
+    .slide[data-layout="icon-grid"] .grid-item .icon { font-size:2rem; margin-bottom:.75rem; }
+    .slide[data-layout="icon-grid"] .grid-item .grid-label { font-size:var(--size-body); font-weight:600; color:var(--fg); }
+    .slide[data-layout="icon-grid"] .grid-item .grid-desc { font-size:var(--size-small); color:var(--fg-muted); margin-top:.25rem; }
+
+    .slide[data-layout="list"] { justify-content:flex-start; align-items:flex-start; }
+    .slide[data-layout="list"] ul, .slide[data-layout="list"] ol { padding-left:1.5rem; display:flex; flex-direction:column; gap:.75rem; max-width:70ch; }
+    .slide[data-layout="list"] li { font-size:var(--size-body); line-height:1.6; }
+
+    .slide[data-layout="center"] { justify-content:center; align-items:center; text-align:center; }
+    .slide[data-layout="center"] h3 { font-size:var(--size-h2); border-bottom:none; margin-bottom:.5rem; }
+
+    /* ── 데이터형 ── */
+    .slide[data-layout="data-chart"] { justify-content:flex-start; align-items:center; padding:var(--pad-sm) var(--pad); }
+    .slide[data-layout="data-chart"] h3 { font-size:var(--size-body); margin-bottom:.75rem; width:100%; }
+    .slide[data-layout="data-chart"] .chart-area { flex:1; width:100%; display:flex; justify-content:center; align-items:center; min-height:0; }
+    .slide[data-layout="data-chart"] .chart-area svg { max-width:100%; max-height:100%; }
+
+    .slide[data-layout="comparison"] .compare-container { display:grid; grid-template-columns:1fr 1fr; gap:0; width:100%; flex:1; }
+    .slide[data-layout="comparison"] .compare-side { padding:2rem; }
+    .slide[data-layout="comparison"] .compare-side:first-child { background:var(--accent-light); border-radius:var(--radius) 0 0 var(--radius); }
+    .slide[data-layout="comparison"] .compare-side:last-child { background:var(--bg-alt); border-radius:0 var(--radius) var(--radius) 0; }
+    .slide[data-layout="comparison"] .compare-side h4 { font-size:var(--size-h3); font-weight:700; margin-bottom:1rem; color:var(--fg); }
+
+    .slide[data-layout="table-data"] { justify-content:flex-start; padding:var(--pad-sm) var(--pad); }
+    .slide[data-layout="table-data"] h3 { font-size:var(--size-body); margin-bottom:.75rem; }
+    .slide[data-layout="table-data"] table { width:100%; border-collapse:collapse; font-size:calc(var(--size-small)*.95); }
+    .slide[data-layout="table-data"] th { background:var(--accent); color:#fff; padding:.4rem .6rem; text-align:left; font-weight:600; font-size:calc(var(--size-small)*.9); }
+    .slide[data-layout="table-data"] td { padding:.35rem .6rem; border-bottom:1px solid var(--border); }
+    .slide[data-layout="table-data"] tr:nth-child(even) td { background:var(--bg-alt); }
+
+    .slide[data-layout="dashboard"] { justify-content:flex-start; padding:var(--pad-sm); }
+    .slide[data-layout="dashboard"] h3 { font-size:var(--size-body); margin-bottom:.75rem; width:100%; }
+    .slide[data-layout="dashboard"] .kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; width:100%; margin-bottom:1rem; }
+    .slide[data-layout="dashboard"] .kpi-card { background:var(--bg-alt); border:1px solid var(--border); border-radius:var(--radius); padding:1rem; text-align:center; }
+    .slide[data-layout="dashboard"] .kpi-card .kpi-value { font-size:var(--size-h2); font-weight:800; color:var(--accent); }
+    .slide[data-layout="dashboard"] .kpi-card .kpi-label { font-size:var(--size-small); color:var(--fg-muted); margin-top:.25rem; }
+    .slide[data-layout="dashboard"] table { width:100%; font-size:calc(var(--size-small)*.9); }
+
+    /* ── 시각형 ── */
+    .slide[data-layout="fullbleed-image"] { padding:0; position:relative; }
+    .slide[data-layout="fullbleed-image"] img { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; border-radius:0; border:none; }
+    .slide[data-layout="fullbleed-image"] .overlay-text { position:relative; z-index:1; background:rgba(0,0,0,.5); color:#fff; padding:1.5rem 2rem; border-radius:var(--radius); margin:auto; text-align:center; }
+
+    .slide[data-layout="image-left"] { flex-direction:row; padding:0; gap:0; }
+    .slide[data-layout="image-left"] .image-panel { width:40%; height:100%; flex-shrink:0; overflow:hidden; }
+    .slide[data-layout="image-left"] .image-panel img { width:100%; height:100%; object-fit:cover; border-radius:0; border:none; }
+    .slide[data-layout="image-left"] .text-panel { flex:1; padding:var(--pad); display:flex; flex-direction:column; justify-content:center; overflow-y:auto; }
+
+    .slide[data-layout="image-right"] { flex-direction:row; padding:0; gap:0; }
+    .slide[data-layout="image-right"] .text-panel { flex:1; padding:var(--pad); display:flex; flex-direction:column; justify-content:center; overflow-y:auto; }
+    .slide[data-layout="image-right"] .image-panel { width:40%; height:100%; flex-shrink:0; overflow:hidden; }
+    .slide[data-layout="image-right"] .image-panel img { width:100%; height:100%; object-fit:cover; border-radius:0; border:none; }
+
+    .slide[data-layout="asymmetric-split"] .cols-container { display:grid; gap:2rem; width:100%; height:100%; align-items:start; }
+    .slide[data-layout="asymmetric-split"] .cols-container.ratio-60-40 { grid-template-columns:3fr 2fr; }
+    .slide[data-layout="asymmetric-split"] .cols-container.ratio-70-30 { grid-template-columns:7fr 3fr; }
+    .slide[data-layout="asymmetric-split"] .cols-container.ratio-30-70 { grid-template-columns:3fr 7fr; }
+    .slide[data-layout="asymmetric-split"] .cols-container.ratio-40-60 { grid-template-columns:2fr 3fr; }
+    .slide[data-layout="asymmetric-split"] .cols-container .col { padding:0 1rem; }
+
+    .slide[data-layout="iframe-embed"] { padding:var(--pad-sm); }
+    .slide[data-layout="iframe-embed"] h3 { font-size:var(--size-body); margin-bottom:.5rem; }
+    .slide[data-layout="iframe-embed"] iframe { flex:1; width:100%; border:1px solid var(--border); border-radius:var(--radius); }
+
+    /* ── 특수형 ── */
+    .slide[data-layout="code-focus"] { justify-content:flex-start; padding:var(--pad-sm) var(--pad); }
+    .slide[data-layout="code-focus"] h3 { font-size:var(--size-body); margin-bottom:.5rem; }
+    .slide[data-layout="code-focus"] pre { flex:1; width:100%; overflow:auto; font-size:clamp(.7rem,1.5vw,.95rem); line-height:1.5; margin:0; }
+
+    .slide[data-layout="timeline"] { justify-content:flex-start; align-items:flex-start; }
+    .slide[data-layout="timeline"] .timeline-container { position:relative; padding-left:2.5rem; display:flex; flex-direction:column; gap:1.5rem; width:100%; }
+    .slide[data-layout="timeline"] .timeline-container::before { content:''; position:absolute; left:.75rem; top:0; bottom:0; width:2px; background:var(--accent); }
+    .slide[data-layout="timeline"] .timeline-item { position:relative; }
+    .slide[data-layout="timeline"] .timeline-item::before { content:''; position:absolute; left:-1.95rem; top:.4rem; width:12px; height:12px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); }
+    .slide[data-layout="timeline"] .timeline-date { font-size:var(--size-small); font-weight:700; color:var(--accent); margin-bottom:.25rem; }
+    .slide[data-layout="timeline"] .timeline-content { font-size:var(--size-body); color:var(--fg); }
+
+    .slide[data-layout="steps-process"] .steps-container { display:flex; align-items:flex-start; gap:0; width:100%; margin-top:1rem; }
+    .slide[data-layout="steps-process"] .step { flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; padding:0 .75rem; position:relative; }
+    .slide[data-layout="steps-process"] .step:not(:last-child)::after { content:''; position:absolute; right:-.5rem; top:1.25rem; width:1rem; height:2px; background:var(--accent); }
+    .slide[data-layout="steps-process"] .step-number { width:2.5rem; height:2.5rem; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:var(--size-body); margin-bottom:.75rem; flex-shrink:0; }
+    .slide[data-layout="steps-process"] .step-label { font-size:var(--size-body); font-weight:600; color:var(--fg); margin-bottom:.25rem; }
+    .slide[data-layout="steps-process"] .step-desc { font-size:var(--size-small); color:var(--fg-muted); }
+
+    /* ── 다이어그램형 ── */
+    .slide[data-layout="diagram"] { justify-content:flex-start; align-items:center; padding:var(--pad-sm) var(--pad); }
+    .slide[data-layout="diagram"] h3 { font-size:var(--size-body); margin-bottom:.5rem; width:100%; }
+    .slide[data-layout="diagram"] .diagram-area { flex:1; width:100%; display:flex; justify-content:center; align-items:center; min-height:0; overflow:auto; }
+    .slide[data-layout="diagram"] .diagram-area svg { max-width:100%; max-height:100%; }
+
+    .slide[data-layout="diagram-fullbleed"] { padding:0; position:relative; justify-content:center; align-items:center; }
+    .slide[data-layout="diagram-fullbleed"] h3 { position:absolute; top:1rem; left:1.5rem; font-size:var(--size-small); color:var(--fg-muted); border-bottom:none; margin:0; z-index:1; background:var(--bg); padding:.25rem .75rem; border-radius:var(--radius); opacity:.85; }
+    .slide[data-layout="diagram-fullbleed"] .diagram-area { width:100%; height:100%; display:flex; justify-content:center; align-items:center; padding:2rem; }
+    .slide[data-layout="diagram-fullbleed"] .diagram-area svg { max-width:100%; max-height:100%; }
+
+    .slide[data-layout="diagram-split"] { flex-direction:row; padding:0; gap:0; }
+    .slide[data-layout="diagram-split"] .diagram-panel { width:60%; height:100%; display:flex; justify-content:center; align-items:center; padding:2rem; overflow:auto; }
+    .slide[data-layout="diagram-split"] .diagram-panel svg { max-width:100%; max-height:100%; }
+    .slide[data-layout="diagram-split"] .text-panel { width:40%; height:100%; padding:var(--pad); display:flex; flex-direction:column; justify-content:center; overflow-y:auto; border-left:1px solid var(--border); background:var(--bg-alt); }
   </style>
 </head>
 <body>
-  <!-- split 레이아웃 전용 nav (JS가 채움) -->
-  <nav class="split-nav" id="splitNav" style="display:none">
-    <div class="split-nav-title">목차</div>
-  </nav>
-
   <div class="slideshow" id="slideshow">
     {{SLIDES}}
   </div>
@@ -1219,29 +1953,26 @@
       const slideshow=document.getElementById('slideshow');
       const currentEl=document.getElementById('currentSlide');
       const totalEl=document.getElementById('totalSlides');
-      const layout=document.documentElement.dataset.layout||'horizontal';
+      const transition=document.documentElement.dataset.transition||'horizontal';
       const slides=Array.from(slideshow.querySelectorAll('.slide'));
       let current=0;
-
-      // split nav 표시
-      const splitNav=document.getElementById('splitNav');
-      if(layout==='split'&&splitNav) splitNav.style.display='flex';
 
       function hashToIndex(h){const m=(h||'').match(/slide-(\d+)/);if(m){const i=parseInt(m[1],10)-1;if(i>=0&&i<slides.length)return i;}return 0;}
       function updateHash(i){const id=slides[i].id||('slide-'+(i+1));history.replaceState(null,'','#'+id);}
       function updateCounter(i){if(currentEl)currentEl.textContent=i+1;if(totalEl)totalEl.textContent=slides.length;}
-      function updateSplitNav(i){if(layout!=='split')return;document.querySelectorAll('.split-nav-item').forEach((el,j)=>el.classList.toggle('active',j===i));}
 
       function goTo(idx,skipHash){
         if(idx<0||idx>=slides.length)return;
         const prev=current;
         slides[prev].classList.remove('active');
-        if(layout!=='split')slides[prev].classList.add('prev');
+        if(transition!=='fade')slides[prev].classList.add('prev');
         current=idx;
         slides[current].classList.remove('prev');
         slides[current].classList.add('active');
-        setTimeout(()=>{slides.forEach((s,i)=>{if(i!==current)s.classList.remove('prev');});},400);
-        updateCounter(current);updateSplitNav(current);
+        if(transition!=='fade'){
+          setTimeout(()=>{slides.forEach((s,i)=>{if(i!==current)s.classList.remove('prev');});},400);
+        }
+        updateCounter(current);
         if(!skipHash)updateHash(current);
       }
 
@@ -1255,28 +1986,12 @@
         else if(e.key==='End'){e.preventDefault();goTo(slides.length-1);}
       });
 
-      const clickTarget=layout==='split'?slideshow:document;
-      clickTarget.addEventListener('click',function(e){
-        if(e.target.closest('.split-nav'))return;
+      document.addEventListener('click',function(e){
         if(e.target.tagName==='A')return;
         const gt=e.target.closest('[data-goto]');
         if(gt){const i=slides.findIndex(s=>s.id===gt.dataset.goto);if(i!==-1){goTo(i);return;}}
         next();
       });
-
-      function buildSplitNav(){
-        if(layout!=='split')return;
-        const nav=document.getElementById('splitNav');
-        if(!nav)return;
-        slides.forEach((slide,i)=>{
-          const h=slide.querySelector('h1,h2,h3');
-          const label=h?h.textContent.trim():('슬라이드'+(i+1));
-          const item=document.createElement('div');
-          item.className='split-nav-item';item.textContent=label;item.dataset.index=i;
-          item.addEventListener('click',function(){goTo(i);});
-          nav.appendChild(item);
-        });
-      }
 
       window.addEventListener('hashchange',function(){const i=hashToIndex(location.hash);if(i!==current)goTo(i,true);});
 
@@ -1284,18 +1999,17 @@
       document.addEventListener('touchstart',function(e){tsx=e.changedTouches[0].screenX;tsy=e.changedTouches[0].screenY;},{passive:true});
       document.addEventListener('touchend',function(e){
         const dx=e.changedTouches[0].screenX-tsx,dy=e.changedTouches[0].screenY-tsy,th=50;
-        if(layout==='vertical'){if(dy<-th)next();else if(dy>th)prev();}
+        if(transition==='vertical'){if(dy<-th)next();else if(dy>th)prev();}
         else{if(dx<-th)next();else if(dx>th)prev();}
       },{passive:true});
 
       function init(){
         if(totalEl)totalEl.textContent=slides.length;
         slides.forEach((s,i)=>{s.classList.remove('active','prev');if(!s.id)s.id='slide-'+(i+1);});
-        buildSplitNav();
         const start=hashToIndex(location.hash);
-        for(let i=0;i<start;i++)slides[i].classList.add('prev');
+        if(transition!=='fade'){for(let i=0;i<start;i++)slides[i].classList.add('prev');}
         slides[start].classList.add('active');
-        current=start;updateCounter(current);updateSplitNav(current);
+        current=start;updateCounter(current);
       }
       init();
     })();
@@ -1311,14 +2025,15 @@
 | 항목 | 치환값 |
 |------|--------|
 | `{{THEME}}` | `default` / `dark` / `minimal` / `corporate` |
-| `{{LAYOUT}}` | `horizontal` / `vertical` / `split` |
+| `{{TRANSITION}}` | `horizontal` / `vertical` / `fade` |
 | `{{TITLE}}` | 문서 제목 |
 | `{{SLIDES}}` | 각 슬라이드 HTML (`.slide` div들) |
 | `data-type` | `cover` / `toc` / `divider` / `content` / `closing` |
+| `data-layout` | 슬라이드별 자동 감지 결과 (30개 중 1개) |
 
 ### 슬라이드 타입 결정 규칙
-- **H1** (문서 최상단) → `cover`
-- **`## 목차`** 섹션 → `toc`
-- **H2** (단독 섹션 제목) → `divider`
-- **H3 + 본문** → `content`
-- **`## 마무리` / `## 감사합니다`** → `closing`
+- **H1** (문서 최상단) → `cover` (data-layout=`title-cover`)
+- **TOC** (자동 생성) → `toc` (data-layout=`agenda`)
+- **H2** (단독 섹션 제목) → `divider` (data-layout=`section-divider`)
+- **H3 + 본문** → `content` (data-layout=자동 감지)
+- **마지막** → `closing` (data-layout=`end`)
