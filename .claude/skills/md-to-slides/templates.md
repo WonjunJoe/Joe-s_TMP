@@ -21,21 +21,18 @@
   --code-bg:      #f3f4f6;   /* 코드블록 배경 */
 
   /* === 타이포그래피 === */
-  --font-sans:    'Inter', 'Pretendard', system-ui, sans-serif;
+  --font-sans:    'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
-  --size-title:   clamp(2rem, 5vw, 3.5rem);
-  --size-h2:      clamp(1.5rem, 3vw, 2.25rem);
-  --size-h3:      clamp(1.2rem, 2.5vw, 1.75rem);
-  --size-body:    clamp(0.9rem, 1.8vw, 1.1rem);
-  --size-small:   0.85rem;
+  --size-title:   clamp(2.8rem, 6vw, 5rem);
+  --size-h2:      clamp(2rem, 4vw, 3.2rem);
+  --size-h3:      clamp(1.5rem, 2.8vw, 2.4rem);
+  --size-body:    clamp(1.1rem, 1.8vw, 1.5rem);
+  --size-small:   clamp(0.9rem, 1.4vw, 1.2rem);
 
   /* === 간격 === */
   --pad:          clamp(2rem, 5vw, 4rem);
   --pad-sm:       clamp(1rem, 2.5vw, 2rem);
   --radius:       0.5rem;
-
-  /* === 전환 === */
-  --transition:   0.35s ease;
 }
 ```
 
@@ -105,17 +102,18 @@
 
 ---
 
-## 2. 전환효과(Transition)별 CSS
+## 2. 슬라이드 기본 CSS
 
 ### 공통 HTML 래퍼
 
 ```html
 <!DOCTYPE html>
-<html lang="ko" data-theme="default" data-transition="horizontal">
+<html lang="ko" data-theme="default">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{TITLE}}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
   <style>
     /* === BASE RESET === */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -123,13 +121,16 @@
     /* === 테마 CSS 변수 (위 명세 삽입) === */
     /* ... */
 
-    /* === 전환효과별 CSS (아래 명세 삽입) === */
+    /* === 슬라이드 기본 CSS (아래 명세 삽입) === */
     /* ... */
 
     /* === 슬라이드 타입별 CSS (아래 명세 삽입) === */
     /* ... */
 
     /* === 슬라이드 레이아웃별 CSS (아래 명세 삽입) === */
+    /* ... */
+
+    /* === 네비게이션 CSS (아래 명세 삽입) === */
     /* ... */
   </style>
 </head>
@@ -139,9 +140,20 @@
     {{SLIDES}}
   </div>
 
-  <!-- 네비게이션 UI -->
-  <div class="slide-counter" id="slideCounter">
-    <span id="currentSlide">1</span> / <span id="totalSlides">1</span>
+  <!-- 좌/우 네비게이션 버튼 -->
+  <button class="nav-btn nav-prev" id="navPrev" aria-label="이전 슬라이드">&#8249;</button>
+  <button class="nav-btn nav-next" id="navNext" aria-label="다음 슬라이드">&#8250;</button>
+
+  <!-- 하단 진행 바 + 슬라이드 번호 -->
+  <div class="nav-bar" id="navBar">
+    <div class="nav-progress">
+      <div class="nav-progress-fill" id="navProgressFill"></div>
+    </div>
+    <div class="nav-info">
+      <span id="currentSlide">1</span>
+      <span class="nav-sep">/</span>
+      <span id="totalSlides">1</span>
+    </div>
   </div>
 
   <script>
@@ -153,11 +165,11 @@
 
 ---
 
-### 전환효과: horizontal (좌우 전환)
+### 슬라이드 기본 스타일
 
 ```css
-/* data-transition="horizontal" */
-[data-transition="horizontal"] .slideshow {
+/* Slideshow 컨테이너 */
+.slideshow {
   position: relative;
   width: 100vw;
   height: 100vh;
@@ -165,140 +177,78 @@
   background: var(--bg);
 }
 
-[data-transition="horizontal"] .slide {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
+/* body 배경 그라디언트 (glassmorphism 배경) */
+body { position: relative; }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  animation: bgShift 18s ease-in-out infinite alternate;
+}
+@keyframes bgShift {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  50%  { filter: hue-rotate(15deg) brightness(1.05); }
+  100% { filter: hue-rotate(-10deg) brightness(0.97); }
+}
+[data-theme="default"] body::before {
+  background:
+    radial-gradient(ellipse at 20% 20%, #a78bfa 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 10%, #60a5fa 0%, transparent 45%),
+    radial-gradient(ellipse at 60% 80%, #34d399 0%, transparent 50%),
+    radial-gradient(ellipse at 10% 80%, #f472b6 0%, transparent 45%),
+    #e0e7ff;
+}
+[data-theme="dark"] body::before {
+  background:
+    radial-gradient(ellipse at 20% 20%, #7c3aed 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 15%, #1d4ed8 0%, transparent 45%),
+    radial-gradient(ellipse at 55% 85%, #047857 0%, transparent 50%),
+    radial-gradient(ellipse at 10% 75%, #9d174d 0%, transparent 45%),
+    #0f0f1a;
+}
+[data-theme="minimal"] body::before {
+  background:
+    radial-gradient(ellipse at 30% 30%, #d1d5db 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 70%, #e5e7eb 0%, transparent 50%),
+    #f9fafb;
+}
+[data-theme="corporate"] body::before {
+  background:
+    radial-gradient(ellipse at 15% 25%, #1e3a8a 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 15%, #0f766e 0%, transparent 45%),
+    radial-gradient(ellipse at 60% 80%, #1e40af 0%, transparent 50%),
+    #0f172a;
+}
+
+/* 공통 슬라이드 — 항상 viewport 전체 차지 */
+.slide {
+  display: none;
+  position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding: var(--pad);
-  background: var(--bg);
+  padding: clamp(1.5rem,4vw,4rem);
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.25);
   color: var(--fg);
   font-family: var(--font-sans);
-  transform: translateX(100%);
-  transition: transform var(--transition);
-  will-change: transform;
 }
 
-[data-transition="horizontal"] .slide.active {
-  transform: translateX(0);
-}
-
-[data-transition="horizontal"] .slide.prev {
-  transform: translateX(-100%);
-}
-
-/* 슬라이드 카운터 위치 */
-[data-transition="horizontal"] .slide-counter {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 2rem;
-  font-size: var(--size-small);
-  color: var(--fg-muted);
-  font-family: var(--font-sans);
-  z-index: 100;
-}
-```
-
----
-
-### 전환효과: vertical (상하 전환)
-
-```css
-/* data-transition="vertical" */
-[data-transition="vertical"] .slideshow {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-[data-transition="vertical"] .slide {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
+/* 활성 슬라이드만 표시 */
+.slide.active {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding: var(--pad);
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  transform: translateY(100%);
-  transition: transform var(--transition);
-  will-change: transform;
 }
 
-[data-transition="vertical"] .slide.active {
-  transform: translateY(0);
-}
+/* 테마별 슬라이드 유리 패널 */
+[data-theme="dark"] .slide { background: rgba(15,15,30,0.55); border-color: rgba(255,255,255,0.10); }
+[data-theme="minimal"] .slide { background: rgba(255,255,255,0.60); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-color: rgba(0,0,0,0.08); }
+[data-theme="corporate"] .slide { background: rgba(15,23,42,0.65); border-color: rgba(255,255,255,0.10); }
 
-[data-transition="vertical"] .slide.prev {
-  transform: translateY(-100%);
-}
-
-[data-transition="vertical"] .slide-counter {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 2rem;
-  font-size: var(--size-small);
-  color: var(--fg-muted);
-  font-family: var(--font-sans);
-  z-index: 100;
-}
-```
-
----
-
-### 전환효과: fade (페이드 전환)
-
-```css
-/* data-transition="fade" */
-[data-transition="fade"] .slideshow {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--bg);
-}
-
-[data-transition="fade"] .slide {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding: var(--pad);
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition);
-}
-
-[data-transition="fade"] .slide.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-[data-transition="fade"] .slide-counter {
-  position: fixed;
-  bottom: 1.5rem;
-  right: 2rem;
-  font-size: var(--size-small);
-  color: var(--fg-muted);
-  font-family: var(--font-sans);
-  z-index: 100;
+/* 슬라이드 카운터 (nav-info로 대체됨) */
+.slide-counter {
+  display: none;
 }
 ```
 
@@ -309,11 +259,16 @@
 ### data-type="cover" — 표지 슬라이드
 
 ```css
-.slide[data-type="cover"] {
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  background: var(--bg);
+.slide[data-type="cover"] { justify-content: center; align-items: center; text-align: center; }
+
+.cover-inner {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.30);
+  border-radius: 1.5rem;
+  padding: clamp(2rem,4vw,4rem) clamp(2.5rem,5vw,5rem);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.4);
+  text-align: center; max-width: 800px; width: 90%;
 }
 
 .slide[data-type="cover"] .cover-eyebrow {
@@ -372,18 +327,17 @@
 
 ```css
 .slide[data-type="toc"] {
+  justify-content: center;
   align-items: flex-start;
   padding: var(--pad);
 }
 
 .slide[data-type="toc"] h2 {
-  font-size: var(--size-h2);
-  font-weight: 700;
-  color: var(--fg);
-  margin-bottom: 2rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--accent);
+  font-size: var(--size-h2); font-weight:700; color:#fff;
+  margin-bottom:1.5rem; padding-bottom:.75rem;
+  border-bottom:2px solid rgba(255,255,255,0.35); width:100%;
 }
+[data-theme="minimal"] .slide[data-type="toc"] h2 { color:#111827; border-bottom-color:#d1d5db; }
 
 .slide[data-type="toc"] ol {
   list-style: none;
@@ -401,24 +355,29 @@
   align-items: center;
   gap: 1rem;
   font-size: var(--size-body);
-  color: var(--fg);
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+  color: #fff;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 0.5rem;
+  padding: 0.6rem 1rem;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   cursor: pointer;
-  transition: color 0.2s;
 }
 
 .slide[data-type="toc"] ol li::before {
   content: counter(toc-counter, decimal-leading-zero);
   font-size: var(--size-small);
   font-weight: 700;
-  color: var(--accent);
+  color: rgba(255,255,255,0.7);
   min-width: 2em;
 }
 
 .slide[data-type="toc"] ol li:hover {
-  color: var(--accent);
+  background: rgba(255,255,255,0.22); color: #fff;
 }
+
+[data-theme="minimal"] .slide[data-type="toc"] ol li { color: #111827; background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.10); }
 ```
 
 ---
@@ -430,7 +389,9 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  background: var(--accent);
+  background: linear-gradient(135deg, rgba(99,102,241,0.7) 0%, rgba(139,92,246,0.7) 100%);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(255,255,255,0.20);
 }
 
 .slide[data-type="divider"] .divider-number {
@@ -443,11 +404,11 @@
 }
 
 .slide[data-type="divider"] h2 {
-  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-size: clamp(3.5rem, 9vw, 8rem);
   font-weight: 800;
   color: #ffffff;
-  line-height: 1.1;
-  max-width: 14ch;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }
 
 .slide[data-type="divider"] .divider-sub {
@@ -459,12 +420,12 @@
 
 /* dark 테마 divider */
 [data-theme="dark"] .slide[data-type="divider"] {
-  background: var(--accent);
+  background: linear-gradient(135deg, rgba(109,40,217,0.75) 0%, rgba(79,70,229,0.75) 100%);
 }
 
-/* minimal 테마 divider — 반전 배경 */
+/* minimal 테마 divider */
 [data-theme="minimal"] .slide[data-type="divider"] {
-  background: #000000;
+  background: linear-gradient(135deg, rgba(55,65,81,0.80) 0%, rgba(17,24,39,0.75) 100%);
 }
 
 [data-theme="minimal"] .slide[data-type="divider"] h2 {
@@ -473,7 +434,7 @@
 
 /* corporate 테마 divider */
 [data-theme="corporate"] .slide[data-type="divider"] {
-  background: var(--accent);
+  background: linear-gradient(135deg, rgba(30,58,138,0.85) 0%, rgba(15,118,110,0.70) 100%);
 }
 ```
 
@@ -502,12 +463,14 @@
 .slide[data-type="content"] h3 {
   font-size: var(--size-h3);
   font-weight: 700;
-  color: var(--fg);
+  color: #fff;
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--accent);
+  border-bottom: 2px solid rgba(255,255,255,0.35);
   width: 100%;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
+[data-theme="minimal"] .slide[data-type="content"] h3 { color: #111827; border-bottom-color: #d1d5db; text-shadow: none; }
 
 /* corporate: h3 스타일 오버라이드 */
 [data-theme="corporate"] .slide[data-type="content"] h3 {
@@ -524,6 +487,7 @@
 
 .slide[data-type="content"] p {
   font-size: var(--size-body);
+  font-weight: 400;
   line-height: 1.7;
   color: var(--fg);
   margin-bottom: 1rem;
@@ -541,6 +505,7 @@
 
 .slide[data-type="content"] li {
   font-size: var(--size-body);
+  font-weight: 400;
   line-height: 1.6;
   color: var(--fg);
 }
@@ -549,20 +514,26 @@
   color: var(--accent);
 }
 
+.slide[data-type="content"] strong {
+  font-weight: 600;
+}
+
 .slide[data-type="content"] code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background: var(--code-bg);
-  color: var(--accent);
+  background: rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.20);
+  color: #e2e8f0;
   padding: 0.15em 0.4em;
   border-radius: calc(var(--radius) * 0.5);
-  border: 1px solid var(--border);
 }
+[data-theme="minimal"] .slide[data-type="content"] code { background: rgba(0,0,0,0.07); border-color: rgba(0,0,0,0.12); color: #1a1a1a; }
 
 .slide[data-type="content"] pre {
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 0.75rem;
   padding: 1.25rem;
   overflow-x: auto;
   font-family: var(--font-mono);
@@ -576,16 +547,17 @@
   background: none;
   border: none;
   padding: 0;
-  color: var(--fg);
+  color: #e2e8f0;
 }
 
 .slide[data-type="content"] blockquote {
-  border-left: 3px solid var(--accent);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border-left: 3px solid rgba(255,255,255,0.60);
+  border-radius: 0 0.5rem 0.5rem 0;
   padding: 0.75rem 1.25rem;
-  background: var(--accent-light);
-  border-radius: 0 var(--radius) var(--radius) 0;
   font-style: italic;
-  color: var(--fg-muted);
+  color: rgba(255,255,255,0.80);
   margin: 1rem 0;
   max-width: 65ch;
 }
@@ -603,25 +575,63 @@
   width: 100%;
   border-collapse: collapse;
   font-size: var(--size-small);
+  margin: 1rem 0;
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 0.75rem;
+  overflow: hidden;
 }
 
 .slide[data-type="content"] th {
-  background: var(--accent);
+  background: rgba(99,102,241,0.45);
   color: #fff;
   padding: 0.6rem 0.9rem;
   text-align: left;
   font-weight: 600;
+  border-bottom: 1px solid rgba(255,255,255,0.20);
 }
 
 .slide[data-type="content"] td {
   padding: 0.5rem 0.9rem;
-  border-bottom: 1px solid var(--border);
-  color: var(--fg);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.85);
 }
 
 .slide[data-type="content"] tr:nth-child(even) td {
-  background: var(--bg-alt);
+  background: rgba(255,255,255,0.08);
 }
+[data-theme="minimal"] .slide[data-type="content"] th { background: rgba(55,65,81,0.80); }
+[data-theme="minimal"] .slide[data-type="content"] td { color: #111827; border-bottom-color: rgba(0,0,0,0.08); }
+
+/* default 테마: 밝은 배경에서 가독성 */
+[data-theme="default"] .slide[data-type="content"] h3 {
+  color: #0f172a;
+  border-bottom-color: rgba(15,23,42,0.25);
+  text-shadow: none;
+}
+[data-theme="default"] .slide[data-type="content"] p,
+[data-theme="default"] .slide[data-type="content"] li {
+  color: #1e293b;
+}
+[data-theme="default"] .slide[data-type="content"] td { color: #1e293b; }
+[data-theme="default"] .slide[data-type="content"] code {
+  background: rgba(0,0,0,0.08);
+  border-color: rgba(0,0,0,0.15);
+  color: #1e293b;
+}
+[data-theme="default"] .slide[data-type="content"] th {
+  background: rgba(37,99,235,0.70);
+  color: #fff;
+}
+[data-theme="default"] .slide[data-type="content"] tr:nth-child(even) td {
+  background: rgba(0,0,0,0.04);
+}
+[data-theme="default"] .slide[data-type="toc"] ol li { color: #1e293b; }
+[data-theme="default"] .slide[data-type="toc"] h2 { color: #0f172a; border-bottom-color: rgba(15,23,42,0.25); }
+[data-theme="default"] .slide[data-type="toc"] ol li::before { color: rgba(37,99,235,0.8); }
+[data-theme="default"] .slide[data-type="toc"] ol li:hover { color: #1e40af; background: rgba(37,99,235,0.12); }
+[data-theme="default"] .slide[data-type="cover"] .cover-eyebrow { color: #2563eb; }
 ```
 
 ---
@@ -629,11 +639,16 @@
 ### data-type="closing" — 마무리 슬라이드
 
 ```css
-.slide[data-type="closing"] {
-  justify-content: center;
-  align-items: center;
+.slide[data-type="closing"] { justify-content: center; align-items: center; }
+
+.closing-card {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.30);
+  border-radius: 1.5rem;
+  padding: clamp(2rem,4vw,3.5rem) clamp(2.5rem,5vw,4.5rem);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
   text-align: center;
-  background: var(--bg);
 }
 
 .slide[data-type="closing"] .closing-icon {
@@ -1269,9 +1284,11 @@
   flex: 1;
   width: 100%;
   overflow: auto;
-  font-size: clamp(0.7rem, 1.5vw, 0.95rem);
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  max-width: 85%;
+  margin: 2rem auto;
+  padding: 1.5rem 2rem;
   line-height: 1.5;
-  margin: 0;
 }
 
 /* ── timeline ── */
@@ -1486,6 +1503,167 @@
 }
 ```
 
+### 인라인 다이어그램 (Mermaid 대체)
+
+```css
+/* ── Inline Diagram ── */
+.diagram-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1rem 0;
+}
+
+.diagram-flow-lr {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.diagram-flow-tb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.diagram-node {
+  padding: 0.8rem 1.4rem;
+  border-radius: 0.5rem;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.30);
+  color: #fff;
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  font-family: var(--font-sans);
+  text-align: center;
+  min-width: 8rem;
+  line-height: 1.4;
+  white-space: pre-line;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+}
+
+.diagram-node.node-highlight { background: rgba(99,102,241,0.55); border-color: rgba(99,102,241,0.70); }
+.diagram-node.node-gold   { background: rgba(255,211,0,0.30);   border-color: rgba(255,211,0,0.50); }
+.diagram-node.node-green  { background: rgba(52,211,153,0.25);  border-color: rgba(52,211,153,0.45); }
+.diagram-node.node-blue   { background: rgba(96,165,250,0.25);  border-color: rgba(96,165,250,0.45); }
+.diagram-node.node-purple { background: rgba(167,139,250,0.30); border-color: rgba(167,139,250,0.50); }
+
+.diagram-arrow {
+  color: rgba(255,255,255,0.60);
+  font-size: 1.2rem;
+  line-height: 1;
+  user-select: none;
+}
+
+.diagram-arrow-down { transform: rotate(90deg); display: inline-block; }
+
+.diagram-subgraph {
+  border: 2px dashed rgba(255,255,255,0.20);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255,255,255,0.06);
+}
+
+.diagram-subgraph-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+}
+
+.diagram-branch {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1rem;
+  justify-content: center;
+}
+
+[data-theme="minimal"] .diagram-node { color: #1a1a1a; border-color: rgba(0,0,0,0.15); background: rgba(255,255,255,0.50); }
+[data-theme="minimal"] .diagram-arrow { color: #6b7280; }
+```
+
+### 네비게이션 CSS
+
+```css
+/* ── 네비게이션 버튼 ── */
+.nav-btn {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 200;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+  border-radius: 50%;
+  width: clamp(2.5rem, 4vw, 3.5rem);
+  height: clamp(2.5rem, 4vw, 3.5rem);
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  color: rgba(255,255,255,0.85);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  line-height: 1;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.28); color: #fff; }
+.nav-btn:disabled { opacity: 0.2; cursor: default; }
+.nav-prev { left: clamp(0.5rem, 1.5vw, 1.5rem); }
+.nav-next { right: clamp(0.5rem, 1.5vw, 1.5rem); }
+
+/* ── 하단 진행 바 ── */
+.nav-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255,255,255,0.15);
+}
+.nav-progress { height: 3px; background: rgba(255,255,255,0.15); width: 100%; }
+.nav-progress-fill { height: 100%; background: rgba(255,255,255,0.75); width: 0%; }
+.nav-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0 0.5rem;
+  font-size: var(--size-small);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: rgba(255,255,255,0.75);
+  background: transparent;
+}
+.nav-sep { color: rgba(255,255,255,0.30); }
+
+/* 기존 slide-counter 제거 (nav-info로 대체) */
+.slide-counter { display: none; }
+
+/* minimal 테마 네비게이션 */
+[data-theme="minimal"] .nav-btn { background: rgba(0,0,0,0.07); border-color: rgba(0,0,0,0.12); color: #374151; }
+[data-theme="minimal"] .nav-btn:hover { background: rgba(0,0,0,0.12); color: #111827; }
+[data-theme="minimal"] .nav-bar { background: rgba(255,255,255,0.70); border-top: 1px solid rgba(0,0,0,0.08); }
+[data-theme="minimal"] .nav-info { color: #6b7280; }
+[data-theme="minimal"] .nav-progress { background: rgba(0,0,0,0.10); }
+[data-theme="minimal"] .nav-progress-fill { background: #374151; }
+```
+
 ---
 
 ## 4. 네비게이션 JavaScript (완전한 코드)
@@ -1495,10 +1673,8 @@
   'use strict';
 
   const slideshow  = document.getElementById('slideshow');
-  const counterEl  = document.getElementById('slideCounter');
   const currentEl  = document.getElementById('currentSlide');
   const totalEl    = document.getElementById('totalSlides');
-  const transition = document.documentElement.dataset.transition || 'horizontal';
 
   // 모든 슬라이드 수집
   const slides = Array.from(slideshow.querySelectorAll('.slide'));
@@ -1522,6 +1698,14 @@
   function updateCounter(idx) {
     if (currentEl) currentEl.textContent = idx + 1;
     if (totalEl)   totalEl.textContent   = slides.length;
+    // 진행 바
+    const fill = document.getElementById('navProgressFill');
+    if (fill) fill.style.width = ((idx + 1) / slides.length * 100) + '%';
+    // 버튼 비활성화
+    const prevBtn = document.getElementById('navPrev');
+    const nextBtn = document.getElementById('navNext');
+    if (prevBtn) prevBtn.disabled = idx === 0;
+    if (nextBtn) nextBtn.disabled = idx === slides.length - 1;
   }
 
   function goTo(idx, skipHash) {
@@ -1530,23 +1714,8 @@
     const prev = current;
     slides[prev].classList.remove('active');
 
-    // fade 전환은 prev 클래스 불필요 (opacity 기반)
-    if (transition !== 'fade') {
-      slides[prev].classList.add('prev');
-    }
-
     current = idx;
-    slides[current].classList.remove('prev');
     slides[current].classList.add('active');
-
-    // prev 클래스 정리 (전환 완료 후)
-    if (transition !== 'fade') {
-      setTimeout(() => {
-        slides.forEach((s, i) => {
-          if (i !== current) s.classList.remove('prev');
-        });
-      }, 400);
-    }
 
     updateCounter(current);
     if (!skipHash) updateHash(current);
@@ -1580,7 +1749,7 @@
     }
   });
 
-  // ── 클릭 네비게이션 ──────────────────────────────
+  // ── 클릭 네비게이션 (TOC data-goto만 처리) ──────────
   document.addEventListener('click', function (e) {
     // 링크 클릭 무시
     if (e.target.tagName === 'A') return;
@@ -1591,9 +1760,14 @@
       const targetIdx = slides.findIndex(s => s.id === targetId);
       if (targetIdx !== -1) { goTo(targetIdx); return; }
     }
-    // 일반 클릭 → 다음 슬라이드
-    next();
+    // 일반 클릭은 아무 동작 안 함 (버튼으로 이동)
   });
+
+  // ── 네비게이션 버튼 ──────────────────────────────
+  const prevBtn = document.getElementById('navPrev');
+  const nextBtn = document.getElementById('navNext');
+  if (prevBtn) prevBtn.addEventListener('click', function(e) { e.stopPropagation(); prev(); });
+  if (nextBtn) nextBtn.addEventListener('click', function(e) { e.stopPropagation(); next(); });
 
   // ── URL hash 변경 감지 ────────────────────────────
   window.addEventListener('hashchange', function () {
@@ -1614,13 +1788,8 @@
     const dx = e.changedTouches[0].screenX - touchStartX;
     const dy = e.changedTouches[0].screenY - touchStartY;
     const threshold = 50;
-    if (transition === 'vertical') {
-      if (dy < -threshold) next();
-      else if (dy > threshold) prev();
-    } else {
-      if (dx < -threshold) next();
-      else if (dx > threshold) prev();
-    }
+    if (dx < -threshold) next();
+    else if (dx > threshold) prev();
   }, { passive: true });
 
   // ── 초기화 ───────────────────────────────────────
@@ -1629,18 +1798,12 @@
 
     // 모든 슬라이드 초기화
     slides.forEach((s, i) => {
-      s.classList.remove('active', 'prev');
+      s.classList.remove('active');
       if (!s.id) s.id = 'slide-' + (i + 1);
     });
 
     // 초기 슬라이드 결정
     const startIdx = hashToIndex(location.hash);
-    // 첫 슬라이드 이전 슬라이드들을 prev 상태로 초기화 (transform 전환용)
-    if (transition !== 'fade') {
-      for (let i = 0; i < startIdx; i++) {
-        slides[i].classList.add('prev');
-      }
-    }
     slides[startIdx].classList.add('active');
     current = startIdx;
     updateCounter(current);
@@ -1654,32 +1817,36 @@
 
 ## 5. 완전한 단일 파일 HTML 템플릿 (레퍼런스 구현)
 
-아래는 `horizontal` 전환 + `default` 테마를 사용하는 최소 완전 구현이다.
-실제 생성 시 `data-theme`과 `data-transition`을 치환하고, 각 슬라이드에 `data-layout`을 부여한다.
+아래는 `default` 테마를 사용하는 최소 완전 구현이다.
+실제 생성 시 `data-theme`을 치환하고, 각 슬라이드에 `data-layout`을 부여한다.
 
 ```html
 <!DOCTYPE html>
-<html lang="ko" data-theme="{{THEME}}" data-transition="{{TRANSITION}}">
+<html lang="ko" data-theme="{{THEME}}">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{TITLE}}</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
   <style>
     /* ── Reset ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; overflow: hidden; }
+
+    /* ── 루트 스케일링 — 화면 크기에 비례 ── */
+    html { font-size: clamp(12px, 1.2vw, 18px); }
+    html, body { width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0; }
 
     /* ── CSS 변수 기본(default) ── */
     :root {
       --bg: #ffffff; --bg-alt: #f8fafc; --fg: #0f172a; --fg-muted: #64748b;
       --accent: #2563eb; --accent-light: #dbeafe; --border: #e2e8f0;
       --code-bg: #f1f5f9;
-      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-sans: 'Pretendard Variable', 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
-      --size-title: clamp(2rem,5vw,3.5rem); --size-h2: clamp(1.5rem,3vw,2.25rem);
-      --size-h3: clamp(1.2rem,2.5vw,1.75rem); --size-body: clamp(0.9rem,1.8vw,1.1rem);
-      --size-small: 0.85rem; --pad: clamp(2rem,5vw,4rem); --pad-sm: clamp(1rem,2.5vw,2rem);
-      --radius: 0.5rem; --transition: 0.35s ease;
+      --size-title: clamp(2.8rem,6vw,5rem); --size-h2: clamp(2rem,4vw,3.2rem);
+      --size-h3: clamp(1.5rem,2.8vw,2.4rem); --size-body: clamp(1.1rem,1.8vw,1.5rem);
+      --size-small: clamp(0.9rem,1.4vw,1.2rem); --pad: clamp(2rem,5vw,4rem); --pad-sm: clamp(1rem,2.5vw,2rem);
+      --radius: 0.5rem;
     }
     [data-theme="dark"] {
       --bg:#1e1e2e; --bg-alt:#181825; --fg:#cdd6f4; --fg-muted:#a6adc8;
@@ -1698,35 +1865,37 @@
     }
 
     /* ── Slideshow 기본 ── */
-    .slideshow { position:relative; width:100vw; height:100vh; overflow:hidden; background:var(--bg); }
+    .slideshow { position:relative; width:100vw; height:100vh; overflow:hidden; }
 
-    /* ── 공통 슬라이드 ── */
+    /* ── body 배경 그라디언트 (glassmorphism) ── */
+    body { position:relative; }
+    body::before { content:''; position:fixed; inset:0; z-index:-1; animation:bgShift 18s ease-in-out infinite alternate; }
+    @keyframes bgShift { 0%{filter:hue-rotate(0deg) brightness(1);} 50%{filter:hue-rotate(15deg) brightness(1.05);} 100%{filter:hue-rotate(-10deg) brightness(0.97);} }
+    [data-theme="default"] body::before { background: radial-gradient(ellipse at 20% 20%,#a78bfa 0%,transparent 50%), radial-gradient(ellipse at 80% 10%,#60a5fa 0%,transparent 45%), radial-gradient(ellipse at 60% 80%,#34d399 0%,transparent 50%), radial-gradient(ellipse at 10% 80%,#f472b6 0%,transparent 45%), #e0e7ff; }
+    [data-theme="dark"] body::before { background: radial-gradient(ellipse at 20% 20%,#7c3aed 0%,transparent 50%), radial-gradient(ellipse at 80% 15%,#1d4ed8 0%,transparent 45%), radial-gradient(ellipse at 55% 85%,#047857 0%,transparent 50%), radial-gradient(ellipse at 10% 75%,#9d174d 0%,transparent 45%), #0f0f1a; }
+    [data-theme="minimal"] body::before { background: radial-gradient(ellipse at 30% 30%,#d1d5db 0%,transparent 50%), radial-gradient(ellipse at 70% 70%,#e5e7eb 0%,transparent 50%), #f9fafb; }
+    [data-theme="corporate"] body::before { background: radial-gradient(ellipse at 15% 25%,#1e3a8a 0%,transparent 50%), radial-gradient(ellipse at 85% 15%,#0f766e 0%,transparent 45%), radial-gradient(ellipse at 60% 80%,#1e40af 0%,transparent 50%), #0f172a; }
+
+    /* ── 공통 슬라이드 — 항상 viewport 전체 차지 ── */
     .slide {
-      position:absolute; top:0; left:0; width:100%; height:100%;
-      display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
-      padding:var(--pad); background:var(--bg); color:var(--fg); font-family:var(--font-sans);
-      will-change:transform,opacity;
+      display:none; position:absolute; top:0; left:0; width:100vw; height:100vh;
+      flex-direction:column;
+      padding:clamp(1.5rem,4vw,4rem);
+      box-sizing:border-box;
+      background:rgba(255,255,255,0.12);
+      backdrop-filter:blur(24px) saturate(180%); -webkit-backdrop-filter:blur(24px) saturate(180%);
+      border:1px solid rgba(255,255,255,0.25);
+      color:var(--fg); font-family:var(--font-sans);
     }
+    .slide.active { display:flex; }
+    [data-theme="dark"] .slide { background:rgba(15,15,30,0.55); border-color:rgba(255,255,255,0.10); }
+    [data-theme="minimal"] .slide { background:rgba(255,255,255,0.60); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-color:rgba(0,0,0,0.08); }
+    [data-theme="corporate"] .slide { background:rgba(15,23,42,0.65); border-color:rgba(255,255,255,0.10); }
+    /* 콘텐츠 슬라이드 내부 스크롤 허용 */
+    .slide[data-type="content"] { overflow-y:auto; }
 
-    /* ── 전환효과: horizontal ── */
-    [data-transition="horizontal"] .slide { transform:translateX(100%); transition:transform var(--transition); }
-    [data-transition="horizontal"] .slide.active { transform:translateX(0); }
-    [data-transition="horizontal"] .slide.prev { transform:translateX(-100%); }
-
-    /* ── 전환효과: vertical ── */
-    [data-transition="vertical"] .slide { transform:translateY(100%); transition:transform var(--transition); }
-    [data-transition="vertical"] .slide.active { transform:translateY(0); }
-    [data-transition="vertical"] .slide.prev { transform:translateY(-100%); }
-
-    /* ── 전환효과: fade ── */
-    [data-transition="fade"] .slide { opacity:0; pointer-events:none; transition:opacity var(--transition); }
-    [data-transition="fade"] .slide.active { opacity:1; pointer-events:auto; }
-
-    /* ── 슬라이드 카운터 ── */
-    .slide-counter {
-      position:fixed; bottom:1.5rem; right:2rem; font-size:var(--size-small);
-      color:var(--fg-muted); font-family:var(--font-sans); z-index:100; user-select:none;
-    }
+    /* ── 슬라이드 카운터 (nav-info로 대체) ── */
+    .slide-counter { display:none; }
 
     /* ══════════════════════════════════════════════════
        슬라이드 타입별 CSS
@@ -1734,56 +1903,67 @@
 
     /* ── cover ── */
     .slide[data-type="cover"] { justify-content:center; align-items:center; text-align:center; }
+    .cover-inner { background:rgba(255,255,255,0.15); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.30); border-radius:1.5rem; padding:clamp(2rem,4vw,4rem) clamp(2.5rem,5vw,5rem); box-shadow:0 8px 32px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.4); text-align:center; max-width:800px; width:90%; }
     .slide[data-type="cover"] .cover-eyebrow { font-size:var(--size-small); font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:var(--accent); margin-bottom:1rem; }
     .slide[data-type="cover"] h1 { font-size:var(--size-title); font-weight:800; line-height:1.1; color:var(--fg); margin-bottom:1rem; }
     .slide[data-type="cover"] .subtitle { font-size:var(--size-h3); font-weight:400; color:var(--fg-muted); margin-bottom:2rem; }
     .slide[data-type="cover"] .meta { font-size:var(--size-small); color:var(--fg-muted); display:flex; gap:1.5rem; }
-    [data-theme="corporate"] .slide[data-type="cover"] { background:var(--accent); }
     [data-theme="corporate"] .slide[data-type="cover"] h1,
     [data-theme="corporate"] .slide[data-type="cover"] .subtitle,
     [data-theme="corporate"] .slide[data-type="cover"] .meta,
     [data-theme="corporate"] .slide[data-type="cover"] .cover-eyebrow { color:rgba(255,255,255,.9); }
 
     /* ── toc ── */
+    .slide[data-type="toc"] { justify-content:center; align-items:flex-start; }
     .slide[data-type="toc"] h2 { font-size:var(--size-h2); font-weight:700; color:var(--fg); margin-bottom:2rem; padding-bottom:.75rem; border-bottom:2px solid var(--accent); width:100%; }
-    .slide[data-type="toc"] ol { list-style:none; counter-reset:toc; display:flex; flex-direction:column; gap:.75rem; max-width:700px; }
-    .slide[data-type="toc"] ol li { counter-increment:toc; display:flex; align-items:center; gap:1rem; font-size:var(--size-body); color:var(--fg); padding:.5rem 0; border-bottom:1px solid var(--border); cursor:pointer; }
-    .slide[data-type="toc"] ol li::before { content:counter(toc,decimal-leading-zero); font-size:var(--size-small); font-weight:700; color:var(--accent); min-width:2em; }
-    .slide[data-type="toc"] ol li:hover { color:var(--accent); }
+    .slide[data-type="toc"] ol { list-style:none; counter-reset:toc; display:flex; flex-direction:column; gap:.4rem; max-width:700px; width:100%; }
+    .slide[data-type="toc"] ol li { counter-increment:toc; display:flex; align-items:center; gap:1rem; font-size:var(--size-body); font-weight:500; color:#fff; background:rgba(255,255,255,0.10); border:1px solid rgba(255,255,255,0.20); border-radius:.5rem; padding:.6rem 1rem; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); cursor:pointer; }
+    .slide[data-type="toc"] ol li::before { content:counter(toc,decimal-leading-zero); font-size:var(--size-small); font-weight:700; color:rgba(255,255,255,0.7); min-width:2em; }
+    .slide[data-type="toc"] ol li:hover { background:rgba(255,255,255,0.22); color:#fff; }
+    [data-theme="minimal"] .slide[data-type="toc"] ol li { color:#111827; background:rgba(0,0,0,0.05); border-color:rgba(0,0,0,0.10); }
 
     /* ── divider ── */
-    .slide[data-type="divider"] { justify-content:center; align-items:center; text-align:center; background:var(--accent); }
+    .slide[data-type="divider"] { justify-content:center; align-items:center; text-align:center; background:linear-gradient(135deg,rgba(99,102,241,0.7) 0%,rgba(139,92,246,0.7) 100%); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-color:rgba(255,255,255,0.20); }
     .slide[data-type="divider"] .divider-number { font-size:var(--size-small); font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.6); margin-bottom:1rem; }
     .slide[data-type="divider"] h2 { font-size:clamp(2.5rem,6vw,5rem); font-weight:800; color:#fff; line-height:1.1; }
     .slide[data-type="divider"] .divider-sub { font-size:var(--size-body); color:rgba(255,255,255,.75); margin-top:1.5rem; }
-    [data-theme="minimal"] .slide[data-type="divider"] { background:#000; }
+    [data-theme="dark"] .slide[data-type="divider"] { background:linear-gradient(135deg,rgba(109,40,217,0.75) 0%,rgba(79,70,229,0.75) 100%); }
+    [data-theme="minimal"] .slide[data-type="divider"] { background:linear-gradient(135deg,rgba(55,65,81,0.80) 0%,rgba(17,24,39,0.75) 100%); }
+    [data-theme="corporate"] .slide[data-type="divider"] { background:linear-gradient(135deg,rgba(30,58,138,0.85) 0%,rgba(15,118,110,0.70) 100%); }
 
     /* ── content ── */
     .slide[data-type="content"] { justify-content:flex-start; overflow-y:auto; }
-    .slide[data-type="content"] h3 { font-size:var(--size-h3); font-weight:700; color:var(--fg); margin-bottom:1.5rem; padding-bottom:.75rem; border-bottom:2px solid var(--accent); width:100%; }
+    .slide[data-type="content"] h3 { font-size:var(--size-h3); font-weight:700; color:#fff; margin-bottom:1.5rem; padding-bottom:.75rem; border-bottom:2px solid rgba(255,255,255,0.35); width:100%; text-shadow:0 1px 4px rgba(0,0,0,0.15); }
+    [data-theme="minimal"] .slide[data-type="content"] h3 { color:#111827; border-bottom-color:#d1d5db; text-shadow:none; }
     [data-theme="corporate"] .slide[data-type="content"] h3 { background:var(--accent); color:#fff; padding:.75rem var(--pad-sm); border-bottom:none; margin:calc(-1*var(--pad)) calc(-1*var(--pad)) 1.5rem; width:calc(100% + 2*var(--pad)); font-size:var(--size-body); font-weight:600; }
     [data-theme="corporate"] .slide[data-type="content"]::before { content:''; display:block; height:4px; background:var(--accent); position:absolute; top:0; left:0; right:0; }
-    .slide[data-type="content"] p { font-size:var(--size-body); line-height:1.7; color:var(--fg); margin-bottom:1rem; max-width:70ch; }
+    .slide[data-type="content"] p { font-size:var(--size-body); font-weight:400; line-height:1.7; color:rgba(255,255,255,0.90); margin-bottom:1rem; max-width:70ch; }
+    [data-theme="minimal"] .slide[data-type="content"] p { color:#111827; }
     .slide[data-type="content"] ul, .slide[data-type="content"] ol { padding-left:1.5rem; display:flex; flex-direction:column; gap:.5rem; max-width:70ch; }
-    .slide[data-type="content"] li { font-size:var(--size-body); line-height:1.6; color:var(--fg); }
-    .slide[data-type="content"] li::marker { color:var(--accent); }
-    .slide[data-type="content"] code { font-family:var(--font-mono); font-size:.9em; background:var(--code-bg); color:var(--accent); padding:.15em .4em; border-radius:calc(var(--radius)*.5); border:1px solid var(--border); }
-    .slide[data-type="content"] pre { background:var(--code-bg); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; overflow-x:auto; font-family:var(--font-mono); font-size:.85em; line-height:1.6; width:100%; margin:1rem 0; }
-    .slide[data-type="content"] pre code { background:none; border:none; padding:0; color:var(--fg); }
-    .slide[data-type="content"] blockquote { border-left:3px solid var(--accent); padding:.75rem 1.25rem; background:var(--accent-light); border-radius:0 var(--radius) var(--radius) 0; font-style:italic; color:var(--fg-muted); margin:1rem 0; }
+    .slide[data-type="content"] li { font-size:var(--size-body); font-weight:400; line-height:1.6; color:rgba(255,255,255,0.85); }
+    [data-theme="minimal"] .slide[data-type="content"] li { color:#111827; }
+    .slide[data-type="content"] li::marker { color:rgba(255,255,255,0.6); }
+    .slide[data-type="content"] strong { font-weight:600; }
+    .slide[data-type="content"] code { font-family:var(--font-mono); font-size:.9em; background:rgba(0,0,0,0.20); border:1px solid rgba(255,255,255,0.20); color:#e2e8f0; padding:.15em .4em; border-radius:calc(var(--radius)*.5); }
+    [data-theme="minimal"] .slide[data-type="content"] code { background:rgba(0,0,0,0.07); border-color:rgba(0,0,0,0.12); color:#1a1a1a; }
+    .slide[data-type="content"] pre { background:rgba(0,0,0,0.25); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.15); border-radius:.75rem; padding:1.25rem; overflow-x:auto; font-family:var(--font-mono); font-size:.85em; line-height:1.6; width:100%; margin:1rem 0; }
+    .slide[data-type="content"] pre code { background:none; border:none; padding:0; color:#e2e8f0; }
+    .slide[data-type="content"] blockquote { background:rgba(255,255,255,0.15); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-left:3px solid rgba(255,255,255,0.60); border-radius:0 .5rem .5rem 0; padding:.75rem 1.25rem; font-style:italic; color:rgba(255,255,255,0.80); margin:1rem 0; }
     .slide[data-type="content"] img { max-width:100%; height:auto; border-radius:var(--radius); border:1px solid var(--border); }
-    .slide[data-type="content"] table { width:100%; border-collapse:collapse; font-size:var(--size-small); margin:1rem 0; }
-    .slide[data-type="content"] th { background:var(--accent); color:#fff; padding:.6rem .9rem; text-align:left; font-weight:600; }
-    .slide[data-type="content"] td { padding:.5rem .9rem; border-bottom:1px solid var(--border); color:var(--fg); }
-    .slide[data-type="content"] tr:nth-child(even) td { background:var(--bg-alt); }
+    .slide[data-type="content"] table { width:100%; border-collapse:collapse; font-size:var(--size-small); margin:1rem 0; background:rgba(255,255,255,0.10); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.20); border-radius:.75rem; overflow:hidden; }
+    .slide[data-type="content"] th { background:rgba(99,102,241,0.45); color:#fff; padding:.6rem .9rem; text-align:left; font-weight:600; border-bottom:1px solid rgba(255,255,255,0.20); }
+    .slide[data-type="content"] td { padding:.5rem .9rem; border-bottom:1px solid rgba(255,255,255,0.10); color:rgba(255,255,255,0.85); }
+    .slide[data-type="content"] tr:nth-child(even) td { background:rgba(255,255,255,0.08); }
+    [data-theme="minimal"] .slide[data-type="content"] th { background:rgba(55,65,81,0.80); }
+    [data-theme="minimal"] .slide[data-type="content"] td { color:#111827; border-bottom-color:rgba(0,0,0,0.08); }
 
     /* ── closing ── */
-    .slide[data-type="closing"] { justify-content:center; align-items:center; text-align:center; }
+    .slide[data-type="closing"] { justify-content:center; align-items:center; }
+    .closing-card { background:rgba(255,255,255,0.15); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.30); border-radius:1.5rem; padding:clamp(2rem,4vw,3.5rem) clamp(2.5rem,5vw,4.5rem); box-shadow:0 8px 32px rgba(0,0,0,0.12); text-align:center; }
     .slide[data-type="closing"] .closing-icon { font-size:3rem; margin-bottom:1.5rem; opacity:.6; }
     .slide[data-type="closing"] h2 { font-size:var(--size-h2); font-weight:800; color:var(--fg); margin-bottom:1rem; }
     .slide[data-type="closing"] .closing-message { font-size:var(--size-body); color:var(--fg-muted); max-width:40ch; line-height:1.7; margin-bottom:2rem; }
     .slide[data-type="closing"] .closing-contact { display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; font-size:var(--size-small); color:var(--accent); }
-    [data-theme="corporate"] .slide[data-type="closing"] { background:var(--accent); }
     [data-theme="corporate"] .slide[data-type="closing"] h2,
     [data-theme="corporate"] .slide[data-type="closing"] .closing-message { color:rgba(255,255,255,.9); }
     [data-theme="corporate"] .slide[data-type="closing"] .closing-contact { color:#7eb8e8; }
@@ -1935,6 +2115,51 @@
     .slide[data-layout="diagram-split"] .diagram-panel { width:60%; height:100%; display:flex; justify-content:center; align-items:center; padding:2rem; overflow:auto; }
     .slide[data-layout="diagram-split"] .diagram-panel svg { max-width:100%; max-height:100%; }
     .slide[data-layout="diagram-split"] .text-panel { width:40%; height:100%; padding:var(--pad); display:flex; flex-direction:column; justify-content:center; overflow-y:auto; border-left:1px solid var(--border); background:var(--bg-alt); }
+
+    /* ══════════════════════════════════════════════════
+       Inline Diagram CSS
+       ══════════════════════════════════════════════════ */
+    .diagram-container { display:flex; flex-direction:column; align-items:center; gap:1.5rem; width:100%; padding:1rem 0; }
+    .diagram-flow-lr { display:flex; flex-direction:row; align-items:center; flex-wrap:wrap; gap:0.5rem; justify-content:center; }
+    .diagram-flow-tb { display:flex; flex-direction:column; align-items:center; gap:0.5rem; }
+    .diagram-container { display:flex; flex-direction:column; align-items:center; gap:1.5rem; width:100%; padding:1rem 0; }
+    .diagram-flow-lr { display:flex; flex-direction:row; align-items:center; flex-wrap:wrap; gap:0.5rem; justify-content:center; }
+    .diagram-flow-tb { display:flex; flex-direction:column; align-items:center; gap:0.5rem; }
+    .diagram-node { padding:0.6rem 1.1rem; border-radius:0.5rem; background:rgba(255,255,255,0.18); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.30); color:#fff; font-size:0.85rem; font-family:var(--font-sans); text-align:center; min-width:7rem; line-height:1.4; white-space:pre-line; box-shadow:0 4px 12px rgba(0,0,0,0.10); }
+    .diagram-node.node-highlight { background:rgba(99,102,241,0.55); border-color:rgba(99,102,241,0.70); }
+    .diagram-node.node-gold   { background:rgba(255,211,0,0.30);   border-color:rgba(255,211,0,0.50); }
+    .diagram-node.node-green  { background:rgba(52,211,153,0.25);  border-color:rgba(52,211,153,0.45); }
+    .diagram-node.node-blue   { background:rgba(96,165,250,0.25);  border-color:rgba(96,165,250,0.45); }
+    .diagram-node.node-purple { background:rgba(167,139,250,0.30); border-color:rgba(167,139,250,0.50); }
+    .diagram-arrow { color:rgba(255,255,255,0.60); font-size:1.2rem; line-height:1; user-select:none; }
+    .diagram-arrow-down { transform:rotate(90deg); display:inline-block; }
+    .diagram-subgraph { border:2px dashed rgba(255,255,255,0.20); border-radius:0.75rem; padding:1rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem; background:rgba(255,255,255,0.06); }
+    .diagram-subgraph-label { font-size:0.7rem; font-weight:600; color:rgba(255,255,255,0.55); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.25rem; }
+    .diagram-branch { display:flex; flex-direction:row; align-items:flex-start; gap:1rem; justify-content:center; }
+    [data-theme="minimal"] .diagram-node { color:#1a1a1a; border-color:rgba(0,0,0,0.15); background:rgba(255,255,255,0.50); }
+    [data-theme="minimal"] .diagram-arrow { color:#6b7280; }
+
+    /* ══════════════════════════════════════════════════
+       네비게이션 CSS
+       ══════════════════════════════════════════════════ */
+    .nav-btn { position:fixed; top:50%; transform:translateY(-50%); z-index:200; background:rgba(255,255,255,0.15); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.25); box-shadow:0 4px 12px rgba(0,0,0,0.10); border-radius:50%; width:clamp(2.5rem,4vw,3.5rem); height:clamp(2.5rem,4vw,3.5rem); font-size:clamp(1.4rem,2.5vw,2rem); color:rgba(255,255,255,0.85); cursor:pointer; display:flex; align-items:center; justify-content:center; user-select:none; line-height:1; }
+    .nav-btn:hover { background:rgba(255,255,255,0.28); color:#fff; }
+    .nav-btn:disabled { opacity:0.2; cursor:default; }
+    .nav-prev { left:clamp(0.5rem,1.5vw,1.5rem); }
+    .nav-next { right:clamp(0.5rem,1.5vw,1.5rem); }
+
+    .nav-bar { position:fixed; bottom:0; left:0; right:0; z-index:200; display:flex; flex-direction:column; background:rgba(255,255,255,0.10); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-top:1px solid rgba(255,255,255,0.15); }
+    .nav-progress { height:3px; background:rgba(255,255,255,0.15); width:100%; }
+    .nav-progress-fill { height:100%; background:rgba(255,255,255,0.75); width:0%; }
+    .nav-info { display:flex; justify-content:center; align-items:center; gap:0.4rem; padding:0.4rem 0 0.5rem; font-size:var(--size-small); font-family:var(--font-sans); font-weight:500; color:rgba(255,255,255,0.75); background:transparent; }
+    .nav-sep { color:rgba(255,255,255,0.30); }
+    .slide-counter { display:none; }
+    [data-theme="minimal"] .nav-btn { background:rgba(0,0,0,0.07); border-color:rgba(0,0,0,0.12); color:#374151; }
+    [data-theme="minimal"] .nav-btn:hover { background:rgba(0,0,0,0.12); color:#111827; }
+    [data-theme="minimal"] .nav-bar { background:rgba(255,255,255,0.70); border-top:1px solid rgba(0,0,0,0.08); }
+    [data-theme="minimal"] .nav-info { color:#6b7280; }
+    [data-theme="minimal"] .nav-progress { background:rgba(0,0,0,0.10); }
+    [data-theme="minimal"] .nav-progress-fill { background:#374151; }
   </style>
 </head>
 <body>
@@ -1942,8 +2167,18 @@
     {{SLIDES}}
   </div>
 
-  <div class="slide-counter" id="slideCounter">
-    <span id="currentSlide">1</span> / <span id="totalSlides">1</span>
+  <button class="nav-btn nav-prev" id="navPrev" aria-label="이전 슬라이드">&#8249;</button>
+  <button class="nav-btn nav-next" id="navNext" aria-label="다음 슬라이드">&#8250;</button>
+
+  <div class="nav-bar" id="navBar">
+    <div class="nav-progress">
+      <div class="nav-progress-fill" id="navProgressFill"></div>
+    </div>
+    <div class="nav-info">
+      <span id="currentSlide">1</span>
+      <span class="nav-sep">/</span>
+      <span id="totalSlides">1</span>
+    </div>
   </div>
 
   <script>
@@ -1953,25 +2188,27 @@
       const slideshow=document.getElementById('slideshow');
       const currentEl=document.getElementById('currentSlide');
       const totalEl=document.getElementById('totalSlides');
-      const transition=document.documentElement.dataset.transition||'horizontal';
       const slides=Array.from(slideshow.querySelectorAll('.slide'));
       let current=0;
 
       function hashToIndex(h){const m=(h||'').match(/slide-(\d+)/);if(m){const i=parseInt(m[1],10)-1;if(i>=0&&i<slides.length)return i;}return 0;}
       function updateHash(i){const id=slides[i].id||('slide-'+(i+1));history.replaceState(null,'','#'+id);}
-      function updateCounter(i){if(currentEl)currentEl.textContent=i+1;if(totalEl)totalEl.textContent=slides.length;}
+      function updateCounter(i){
+        if(currentEl)currentEl.textContent=i+1;
+        if(totalEl)totalEl.textContent=slides.length;
+        const fill=document.getElementById('navProgressFill');
+        if(fill)fill.style.width=((i+1)/slides.length*100)+'%';
+        const prevBtn=document.getElementById('navPrev');
+        const nextBtn=document.getElementById('navNext');
+        if(prevBtn)prevBtn.disabled=i===0;
+        if(nextBtn)nextBtn.disabled=i===slides.length-1;
+      }
 
       function goTo(idx,skipHash){
         if(idx<0||idx>=slides.length)return;
-        const prev=current;
-        slides[prev].classList.remove('active');
-        if(transition!=='fade')slides[prev].classList.add('prev');
+        slides[current].classList.remove('active');
         current=idx;
-        slides[current].classList.remove('prev');
         slides[current].classList.add('active');
-        if(transition!=='fade'){
-          setTimeout(()=>{slides.forEach((s,i)=>{if(i!==current)s.classList.remove('prev');});},400);
-        }
         updateCounter(current);
         if(!skipHash)updateHash(current);
       }
@@ -1990,8 +2227,12 @@
         if(e.target.tagName==='A')return;
         const gt=e.target.closest('[data-goto]');
         if(gt){const i=slides.findIndex(s=>s.id===gt.dataset.goto);if(i!==-1){goTo(i);return;}}
-        next();
       });
+
+      const prevBtn=document.getElementById('navPrev');
+      const nextBtn=document.getElementById('navNext');
+      if(prevBtn)prevBtn.addEventListener('click',function(e){e.stopPropagation();prev();});
+      if(nextBtn)nextBtn.addEventListener('click',function(e){e.stopPropagation();next();});
 
       window.addEventListener('hashchange',function(){const i=hashToIndex(location.hash);if(i!==current)goTo(i,true);});
 
@@ -1999,15 +2240,13 @@
       document.addEventListener('touchstart',function(e){tsx=e.changedTouches[0].screenX;tsy=e.changedTouches[0].screenY;},{passive:true});
       document.addEventListener('touchend',function(e){
         const dx=e.changedTouches[0].screenX-tsx,dy=e.changedTouches[0].screenY-tsy,th=50;
-        if(transition==='vertical'){if(dy<-th)next();else if(dy>th)prev();}
-        else{if(dx<-th)next();else if(dx>th)prev();}
+        if(dx<-th)next();else if(dx>th)prev();
       },{passive:true});
 
       function init(){
         if(totalEl)totalEl.textContent=slides.length;
-        slides.forEach((s,i)=>{s.classList.remove('active','prev');if(!s.id)s.id='slide-'+(i+1);});
+        slides.forEach((s,i)=>{s.classList.remove('active');if(!s.id)s.id='slide-'+(i+1);});
         const start=hashToIndex(location.hash);
-        if(transition!=='fade'){for(let i=0;i<start;i++)slides[i].classList.add('prev');}
         slides[start].classList.add('active');
         current=start;updateCounter(current);
       }
@@ -2025,7 +2264,6 @@
 | 항목 | 치환값 |
 |------|--------|
 | `{{THEME}}` | `default` / `dark` / `minimal` / `corporate` |
-| `{{TRANSITION}}` | `horizontal` / `vertical` / `fade` |
 | `{{TITLE}}` | 문서 제목 |
 | `{{SLIDES}}` | 각 슬라이드 HTML (`.slide` div들) |
 | `data-type` | `cover` / `toc` / `divider` / `content` / `closing` |
