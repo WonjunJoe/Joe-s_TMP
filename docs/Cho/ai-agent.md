@@ -26,20 +26,31 @@
 
 ### 핵심 구성 요소
 
-```
-┌─────────────────────────────────────────┐
-│                AI Agent                  │
-│                                          │
-│  ┌──────────┐    ┌──────────────────┐   │
-│  │  인식     │───>│  추론 / 계획     │   │
-│  │ Perceive │    │  Reason / Plan   │   │
-│  └──────────┘    └────────┬─────────┘   │
-│                           │              │
-│  ┌──────────┐    ┌────────▼─────────┐   │
-│  │  메모리   │<───│  행동 / 실행     │   │
-│  │  Memory  │    │  Act / Execute   │   │
-│  └──────────┘    └──────────────────┘   │
-└─────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    Env([🌐 환경 / Environment]) --> Perceive
+
+    subgraph Agent["🤖 AI Agent"]
+        Perceive["👁️ 인식\nPerceive"]
+        Reason["🧠 추론 / 계획\nReason / Plan"]
+        Act["⚡ 행동 / 실행\nAct / Execute"]
+        Memory["💾 메모리\nMemory"]
+
+        Perceive --> Reason
+        Reason --> Act
+        Act --> Memory
+        Memory --> Reason
+    end
+
+    Act --> Result([✅ 결과 / Result])
+
+    classDef component fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef memory fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef external fill:#E6E6FA,stroke:#666,stroke-width:1px,color:#333
+
+    class Perceive,Reason,Act component
+    class Memory memory
+    class Env,Result external
 ```
 
 - **인식(Perceive)**: 텍스트, 이미지, 파일, 외부 API 등 환경으로부터 정보 수집
@@ -50,6 +61,32 @@
 ---
 
 ## 2. 발전 역사
+
+```mermaid
+timeline
+    title AI Agent 발전 역사
+    section 규칙 기반 (1950s~1990s)
+        1956 : 다트머스 회의 — AI 개념 정립
+        1966 : ELIZA — 규칙 기반 대화 시스템
+        1980s : 전문가 시스템 (Expert System)
+    section 강화학습 기반 (1990s~2010s)
+        1997 : Deep Blue — 체스 챔피언 격파
+        2013 : DQN — Atari 게임 인간 수준
+        2016 : AlphaGo — 강화학습 + 딥러닝
+    section LLM 기반 (2020~2022)
+        2020 : GPT-3 공개
+        2021 : GitHub Copilot
+        2022 : ChatGPT — 지시 따르기 능력
+    section Tool-using Agent (2023)
+        2023.03 : GPT-4 / ReAct 패턴 등장
+        2023.04 : AutoGPT / BabyAGI 오픈소스
+        2023.11 : OpenAI Tools API 표준화
+    section 멀티 에이전트 (2024~현재)
+        2024.01 : CrewAI 등장
+        2024.06 : Anthropic MCP 발표
+        2024.11 : MCP 오픈소스 공개
+        2025 : Agentic AI 주류화
+```
 
 ### 2.1 초기 규칙 기반 에이전트 (1950s~1990s)
 - **1956**: 다트머스 회의에서 AI 개념 정립
@@ -91,8 +128,30 @@
 
 에이전트의 가장 핵심적인 동작 패턴.
 
-```
-Goal → Thought → Action → Observation → Thought → Action → ... → Final Answer
+```mermaid
+flowchart LR
+    Goal([🎯 Goal]) --> Thought
+
+    subgraph Loop["🔄 ReAct Loop"]
+        Thought["💭 Thought\n현재 상황 분석\n다음 행동 계획"]
+        Action["⚡ Action\n도구 호출\n코드 실행 / 검색"]
+        Observation["👁️ Observation\n실행 결과 수신"]
+
+        Thought --> Action
+        Action --> Observation
+        Observation --> Check{목표\n달성?}
+        Check -->|No| Thought
+    end
+
+    Check -->|Yes| Answer([✅ Final Answer])
+
+    classDef step fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef decision fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+    classDef terminal fill:#E6E6FA,stroke:#666,stroke-width:1px,color:#333
+
+    class Thought,Action,Observation step
+    class Check decision
+    class Goal,Answer terminal
 ```
 
 1. **Thought**: 현재 상황 분석, 다음 행동 계획
@@ -118,17 +177,25 @@ Goal → Thought → Action → Observation → Thought → Action → ... → F
 
 ### 3.4 멀티 에이전트 시스템
 
-```
-┌─────────────────────────────────────────────┐
-│           Orchestrator Agent                 │
-│         (계획, 태스크 분배, 통합)              │
-└──────┬──────────────┬─────────────┬──────────┘
-       │              │             │
-   ┌───▼───┐      ┌───▼───┐    ┌───▼───┐
-   │ Agent │      │ Agent │    │ Agent │
-   │  (A)  │      │  (B)  │    │  (C)  │
-   │ 검색  │      │ 코딩  │    │ 검증  │
-   └───────┘      └───────┘    └───────┘
+```mermaid
+flowchart TB
+    Orchestrator["🎯 Orchestrator Agent\n계획 · 태스크 분배 · 결과 통합"]
+
+    Orchestrator --> AgentA["🔍 Agent A\n검색 / 리서치"]
+    Orchestrator --> AgentB["💻 Agent B\n코딩 / 구현"]
+    Orchestrator --> AgentC["✅ Agent C\n검증 / 테스트"]
+
+    AgentA --> Result["📋 통합 결과"]
+    AgentB --> Result
+    AgentC --> Result
+
+    classDef orchestrator fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+    classDef agent fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef result fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Orchestrator orchestrator
+    class AgentA,AgentB,AgentC agent
+    class Result result
 ```
 
 - **병렬 실행**: 독립 태스크를 동시에 처리해 속도 향상
@@ -231,16 +298,23 @@ while not goal_achieved:
 
 ### 6.1 개념 비교 요약
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        AI Agent                              │
-│         (자율적 목표 달성, 계획+행동+메모리 통합)              │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │    Skill     │  │    Tool      │  │       MCP        │  │
-│  │ (행동 템플릿) │  │ (단일 기능)  │  │ (컨텍스트 연결)  │  │
-│  └──────────────┘  └──────────────┘  └──────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    Agent["🤖 AI Agent\n자율적 목표 달성\n계획 + 행동 + 메모리 통합"]
+
+    Agent --> Skill["📋 Skill\n행동 템플릿\n반복 워크플로우"]
+    Agent --> Tool["🔧 Tool\n단일 기능\n함수/API 호출"]
+    Agent --> MCP["🔌 MCP\n외부 시스템 연결\n컨텍스트 제공"]
+
+    classDef agent fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+    classDef skill fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef tool fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef mcp fill:#E6E6FA,stroke:#666,stroke-width:2px,color:#333
+
+    class Agent agent
+    class Skill skill
+    class Tool tool
+    class MCP mcp
 ```
 
 ### 6.2 상세 비교표
@@ -308,19 +382,46 @@ def search_web(query: str) -> str:
 
 ### 6.4 계층 관계
 
-```
-AI Agent
-├── 목표 설정 & 계획 수립
-├── Skill 선택 및 실행
-│   ├── Tool A 호출 (via MCP or direct)
-│   ├── Tool B 호출
-│   └── Tool C 호출
-├── MCP 서버 연동
-│   ├── Filesystem MCP
-│   ├── GitHub MCP
-│   └── Database MCP
-├── 결과 평가 & 메모리 업데이트
-└── 목표 달성 여부 판단 → 반복 or 종료
+```mermaid
+flowchart TB
+    Goal([🎯 목표 Goal]) --> Agent
+
+    subgraph Agent["🤖 AI Agent"]
+        Plan["📐 목표 설정 & 계획 수립"]
+        Eval["📊 결과 평가 & 메모리 업데이트"]
+        Done{목표\n달성?}
+
+        Plan --> SkillExec
+        Plan --> MCPConn
+        SkillExec --> Eval
+        MCPConn --> Eval
+        Eval --> Done
+        Done -->|No| Plan
+    end
+
+    subgraph SkillExec["📋 Skill 실행"]
+        ToolA["🔧 Tool A 호출"]
+        ToolB["🔧 Tool B 호출"]
+        ToolC["🔧 Tool C 호출"]
+    end
+
+    subgraph MCPConn["🔌 MCP 서버 연동"]
+        FS["📁 Filesystem MCP"]
+        GH["🐙 GitHub MCP"]
+        DB["🗄️ Database MCP"]
+    end
+
+    Done -->|Yes| Result([✅ 완료])
+
+    classDef plan fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+    classDef tool fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef mcp fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef decision fill:#FFB6C1,stroke:#DC143C,stroke-width:2px,color:black
+
+    class Plan,Eval plan
+    class ToolA,ToolB,ToolC tool
+    class FS,GH,DB mcp
+    class Done decision
 ```
 
 ### 6.5 언제 무엇을 쓰는가?
