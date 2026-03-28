@@ -28,11 +28,11 @@ OMC는 Claude Code 위에 구축된 **멀티 에이전트 오케스트레이션 
 
 ```mermaid
 flowchart TB
-    User(["👤 사용자 입력"]) --> Hook["🔗 훅 시스템\n(31개 이벤트 훅)"]
-    Hook --> Keyword["🔑 키워드 감지\n자동 스킬 트리거"]
-    Hook --> Skill["📋 스킬 시스템\n(32+ 스킬)"]
-    Skill --> Agent["🤖 에이전트\n(29+ 전문 에이전트)"]
-    Agent --> State["💾 상태 관리\n(.omc/state/)"]
+    User(["👤 사용자 입력"]) --> Hook["🔗 훅 시스템<br/>(31개 이벤트 훅)"]
+    Hook --> Keyword["🔑 키워드 감지<br/>자동 스킬 트리거"]
+    Hook --> Skill["📋 스킬 시스템<br/>(32+ 스킬)"]
+    Skill --> Agent["🤖 에이전트<br/>(29+ 전문 에이전트)"]
+    Agent --> State["💾 상태 관리<br/>(.omc/state/)"]
     State --> Agent
 
     classDef input fill:#FFD700,stroke:#333,stroke-width:2px,color:black
@@ -138,9 +138,9 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    Haiku["⚡ Haiku\n빠른 조회\n단순 검색"]
-    Sonnet["🎯 Sonnet\n표준 작업\n구현/분석"]
-    Opus["🏆 Opus\n복잡한 작업\n설계/보안"]
+    Haiku["⚡ Haiku<br/>빠른 조회<br/>단순 검색"]
+    Sonnet["🎯 Sonnet<br/>표준 작업<br/>구현/분석"]
+    Opus["🏆 Opus<br/>복잡한 작업<br/>설계/보안"]
 
     Haiku --> Sonnet --> Opus
 
@@ -198,16 +198,16 @@ flowchart LR
 ```mermaid
 flowchart TB
     User(["👤 사용자"]) --> Keyword["🔑 키워드 감지"]
-    Keyword --> Tier0["Tier-0\n핵심 워크플로우"]
+    Keyword --> Tier0["Tier-0<br/>핵심 워크플로우"]
     Keyword --> Advanced["고급 워크플로우"]
     Keyword --> Utility["유틸리티"]
 
     subgraph Tier0
-        autopilot["🚀 autopilot\n완전 자동 실행"]
-        ralph["🔄 ralph\n검증까지 지속"]
-        ultrawork["⚡ ultrawork\n병렬 실행"]
-        team["👥 team\nN 에이전트 조율"]
-        ralplan["📐 ralplan\n합의 계획"]
+        autopilot["🚀 autopilot<br/>완전 자동 실행"]
+        ralph["🔄 ralph<br/>검증까지 지속"]
+        ultrawork["⚡ ultrawork<br/>병렬 실행"]
+        team["👥 team<br/>N 에이전트 조율"]
+        ralplan["📐 ralplan<br/>합의 계획"]
     end
 
     classDef tier0 fill:#FFD700,stroke:#333,color:black
@@ -246,11 +246,11 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    Input(["사용자 입력"]) --> UPS["UserPromptSubmit\n키워드 감지\n모드 활성화"]
-    UPS --> PreTool["PreToolUse\n권한 검증\n규칙 주입"]
+    Input(["사용자 입력"]) --> UPS["UserPromptSubmit<br/>키워드 감지<br/>모드 활성화"]
+    UPS --> PreTool["PreToolUse<br/>권한 검증<br/>규칙 주입"]
     PreTool --> Tool["도구 실행"]
-    Tool --> PostTool["PostToolUse\n오류 복구\n규칙 재주입"]
-    PostTool --> Stop["Stop\n지속성 강제\n세션 종료 처리"]
+    Tool --> PostTool["PostToolUse<br/>오류 복구<br/>규칙 재주입"]
+    PostTool --> Stop["Stop<br/>지속성 강제<br/>세션 종료 처리"]
 
     classDef event fill:#90EE90,stroke:#333,color:darkgreen
     classDef tool fill:#87CEEB,stroke:#333,color:darkblue
@@ -306,10 +306,10 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    Plan["📐 team-plan\n계획 수립"] --> PRD["📄 team-prd\n수용 기준 명시"]
-    PRD --> Exec["⚡ team-exec\n병렬 실행\n(3 워커)"]
-    Exec --> Verify["✅ team-verify\n검증"]
-    Verify -->|실패| Fix["🔧 team-fix\n수정"]
+    Plan["📐 team-plan<br/>계획 수립"] --> PRD["📄 team-prd<br/>수용 기준 명시"]
+    PRD --> Exec["⚡ team-exec<br/>병렬 실행<br/>(3 워커)"]
+    Exec --> Verify["✅ team-verify<br/>검증"]
+    Verify -->|실패| Fix["🔧 team-fix<br/>수정"]
     Fix --> Exec
     Verify -->|성공| Done(["완료"])
     Fix -->|완료| Done
