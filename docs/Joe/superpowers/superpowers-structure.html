@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Superpowers Plugin 구조도</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Pretendard', -apple-system, sans-serif; background: #f8f9fa; color: #212529; padding: 32px; line-height: 1.6; }
+    h1 { font-size: 24px; margin-bottom: 4px; }
+    .subtitle { color: #868e96; font-size: 14px; margin-bottom: 32px; }
+
+    /* ===== 섹션 공통 ===== */
+    section { margin-bottom: 40px; }
+    section > h2 { font-size: 18px; border-bottom: 2px solid #212529; padding-bottom: 6px; margin-bottom: 16px; }
+
+    /* ===== 워크플로우 ===== */
+    .workflow { display: flex; align-items: flex-start; gap: 0; flex-wrap: wrap; justify-content: center; }
+    .wf-step { text-align: center; min-width: 140px; max-width: 180px; }
+    .wf-step .num { display: inline-block; width: 28px; height: 28px; line-height: 28px; border-radius: 50%; background: #212529; color: #fff; font-size: 13px; font-weight: 700; }
+    .wf-step .name { display: block; font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .wf-step .desc { font-size: 11px; color: #868e96; margin-top: 2px; }
+    .wf-arrow { font-size: 22px; color: #adb5bd; align-self: center; margin: 0 2px; padding-top: 4px; }
+    .wf-sub { display: flex; gap: 6px; justify-content: center; margin-top: 6px; flex-wrap: wrap; }
+    .wf-sub span { font-size: 10px; background: #e9ecef; border-radius: 4px; padding: 2px 6px; }
+
+    /* ===== 파일 트리 ===== */
+    .tree { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; background: #212529; color: #ced4da; padding: 20px 24px; border-radius: 8px; overflow-x: auto; white-space: pre; line-height: 1.7; }
+    .tree .dir { color: #74c0fc; }
+    .tree .file { color: #ced4da; }
+    .tree .skill { color: #69db7c; }
+    .tree .comment { color: #868e96; }
+
+    /* ===== 스킬 분류 테이블 ===== */
+    .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .cat-card { border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; background: #fff; }
+    .cat-card h3 { font-size: 14px; margin-bottom: 8px; }
+    .cat-card .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 12px; margin-bottom: 8px; color: #fff; }
+    .tag-process { background: #4263eb; }
+    .tag-plan { background: #ae3ec9; }
+    .tag-impl { background: #2b8a3e; }
+    .tag-check { background: #e67700; }
+    .tag-meta { background: #868e96; }
+    .cat-card table { width: 100%; font-size: 12px; border-collapse: collapse; }
+    .cat-card td { padding: 3px 0; vertical-align: top; }
+    .cat-card td:first-child { font-weight: 600; white-space: nowrap; padding-right: 10px; width: 40%; }
+
+    /* ===== 스킬 상세 ===== */
+    .skill-list { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .skill-item { border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; background: #fff; }
+    .skill-item h3 { font-size: 14px; margin-bottom: 2px; }
+    .skill-item .trigger { font-size: 12px; color: #868e96; margin-bottom: 8px; }
+    .skill-item .phases { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .skill-item .phase { font-size: 11px; background: #f1f3f5; border-radius: 4px; padding: 2px 8px; border-left: 3px solid #adb5bd; }
+    .skill-item .rule { font-size: 12px; color: #c92a2a; font-weight: 600; }
+
+    /* ===== 관계 다이어그램 ===== */
+    .relations { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px 24px; overflow-x: auto; white-space: pre; line-height: 1.8; }
+  </style>
+</head>
+<body>
+
+<h1>Superpowers Plugin 구조도</h1>
+<p class="subtitle">v5.0.6 &middot; 14 Skills &middot; 1 Agent &middot; 1 Hook</p>
+
+<!-- ==================== 워크플로우 ==================== -->
+<section>
+  <h2>1. 기본 워크플로우</h2>
+  <div class="workflow">
+    <div class="wf-step">
+      <span class="num">1</span>
+      <span class="name">brainstorming</span>
+      <span class="desc">설계 탐색 &amp; 스펙 작성</span>
+    </div>
+    <span class="wf-arrow">&rarr;</span>
+    <div class="wf-step">
+      <span class="num">2</span>
+      <span class="name">using-git-worktrees</span>
+      <span class="desc">격리된 작업 환경</span>
+    </div>
+    <span class="wf-arrow">&rarr;</span>
+    <div class="wf-step">
+      <span class="num">3</span>
+      <span class="name">writing-plans</span>
+      <span class="desc">구현 계획서 작성</span>
+    </div>
+    <span class="wf-arrow">&rarr;</span>
+    <div class="wf-step">
+      <span class="num">4</span>
+      <span class="name">실행</span>
+      <span class="desc">subagent-driven-dev<br>또는 executing-plans</span>
+      <div class="wf-sub">
+        <span>TDD</span>
+        <span>debugging</span>
+        <span>code-review</span>
+      </div>
+    </div>
+    <span class="wf-arrow">&rarr;</span>
+    <div class="wf-step">
+      <span class="num">5</span>
+      <span class="name">verification</span>
+      <span class="desc">완료 전 검증</span>
+    </div>
+    <span class="wf-arrow">&rarr;</span>
+    <div class="wf-step">
+      <span class="num">6</span>
+      <span class="name">finishing-branch</span>
+      <span class="desc">merge / PR / 유지 / 폐기</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 파일 트리 ==================== -->
+<section>
+  <h2>2. 파일 구조</h2>
+  <div class="tree"><span class="dir">superpowers/5.0.6/</span>
+├── README.md
+├── package.json
+├── LICENSE, CHANGELOG.md, RELEASE-NOTES.md
+│
+├── <span class="dir">skills/</span>                          <span class="comment">← 14개 스킬 정의</span>
+│   ├── <span class="dir">brainstorming/</span>
+│   │   ├── <span class="skill">SKILL.md</span>               <span class="comment">← 스킬 본체</span>
+│   │   ├── visual-companion.md
+│   │   ├── spec-document-reviewer-prompt.md
+│   │   └── <span class="dir">scripts/</span>                 <span class="comment">← 시각화 서버</span>
+│   │       ├── server.cjs, helper.js
+│   │       ├── frame-template.html
+│   │       └── start-server.sh, stop-server.sh
+│   │
+│   ├── <span class="dir">writing-plans/</span>
+│   │   ├── <span class="skill">SKILL.md</span>
+│   │   └── plan-document-reviewer-prompt.md
+│   │
+│   ├── <span class="dir">subagent-driven-development/</span>
+│   │   ├── <span class="skill">SKILL.md</span>
+│   │   ├── implementer-prompt.md
+│   │   ├── spec-reviewer-prompt.md
+│   │   └── code-quality-reviewer-prompt.md
+│   │
+│   ├── <span class="dir">systematic-debugging/</span>
+│   │   ├── <span class="skill">SKILL.md</span>
+│   │   ├── root-cause-tracing.md
+│   │   ├── defense-in-depth.md
+│   │   ├── condition-based-waiting.md
+│   │   ├── find-polluter.sh
+│   │   └── test-pressure-{1,2,3}.md, test-academic.md
+│   │
+│   ├── <span class="dir">test-driven-development/</span>
+│   │   ├── <span class="skill">SKILL.md</span>
+│   │   └── testing-anti-patterns.md
+│   │
+│   ├── <span class="dir">writing-skills/</span>
+│   │   ├── <span class="skill">SKILL.md</span>
+│   │   ├── anthropic-best-practices.md
+│   │   ├── persuasion-principles.md
+│   │   ├── render-graphs.js
+│   │   └── testing-skills-with-subagents.md
+│   │
+│   ├── <span class="dir">requesting-code-review/</span>     ├── <span class="skill">SKILL.md</span> + code-reviewer.md
+│   ├── <span class="dir">receiving-code-review/</span>      └── <span class="skill">SKILL.md</span>
+│   ├── <span class="dir">executing-plans/</span>             └── <span class="skill">SKILL.md</span>
+│   ├── <span class="dir">verification-before-completion/</span> └── <span class="skill">SKILL.md</span>
+│   ├── <span class="dir">using-git-worktrees/</span>         └── <span class="skill">SKILL.md</span>
+│   ├── <span class="dir">finishing-a-development-branch/</span> └── <span class="skill">SKILL.md</span>
+│   ├── <span class="dir">dispatching-parallel-agents/</span>  └── <span class="skill">SKILL.md</span>
+│   └── <span class="dir">using-superpowers/</span>            └── <span class="skill">SKILL.md</span> + references/
+│
+├── <span class="dir">agents/</span>                          <span class="comment">← 커스텀 에이전트</span>
+│   └── code-reviewer.md
+│
+├── <span class="dir">hooks/</span>                           <span class="comment">← 세션 훅</span>
+│   ├── hooks.json
+│   ├── session-start
+│   └── run-hook.cmd
+│
+├── <span class="dir">docs/</span>                            <span class="comment">← 문서 &amp; 설계서</span>
+└── <span class="dir">tests/</span>                           <span class="comment">← 스킬 테스트</span></div>
+</section>
+
+<!-- ==================== 스킬 분류 ==================== -->
+<section>
+  <h2>3. 스킬 분류</h2>
+  <div class="category-grid">
+    <div class="cat-card">
+      <span class="tag tag-process">프로세스</span>
+      <h3>HOW &mdash; 접근 방법 결정</h3>
+      <table>
+        <tr><td>using-superpowers</td><td>스킬 시스템 초기화</td></tr>
+        <tr><td>brainstorming</td><td>구현 전 설계 탐색</td></tr>
+        <tr><td>systematic-debugging</td><td>체계적 디버깅</td></tr>
+      </table>
+    </div>
+    <div class="cat-card">
+      <span class="tag tag-plan">계획</span>
+      <h3>WHAT &mdash; 무엇을 할지 정의</h3>
+      <table>
+        <tr><td>writing-plans</td><td>구현 계획서 작성</td></tr>
+        <tr><td>executing-plans</td><td>배치 실행 + 체크포인트</td></tr>
+        <tr><td>subagent-driven-dev</td><td>서브에이전트 기반 실행</td></tr>
+      </table>
+    </div>
+    <div class="cat-card">
+      <span class="tag tag-impl">구현</span>
+      <h3>DO &mdash; 실제 수행</h3>
+      <table>
+        <tr><td>test-driven-dev</td><td>RED-GREEN-REFACTOR</td></tr>
+        <tr><td>using-git-worktrees</td><td>격리 환경 생성</td></tr>
+        <tr><td>dispatching-parallel</td><td>독립 태스크 병렬 처리</td></tr>
+      </table>
+    </div>
+    <div class="cat-card">
+      <span class="tag tag-check">검증</span>
+      <h3>CHECK &mdash; 품질 보증</h3>
+      <table>
+        <tr><td>requesting-review</td><td>코드 리뷰 요청</td></tr>
+        <tr><td>receiving-review</td><td>리뷰 피드백 처리</td></tr>
+        <tr><td>verification</td><td>완료 전 증거 기반 검증</td></tr>
+        <tr><td>finishing-branch</td><td>브랜치 통합 의사결정</td></tr>
+      </table>
+    </div>
+    <div class="cat-card">
+      <span class="tag tag-meta">메타</span>
+      <h3>META &mdash; 스킬 자체 관리</h3>
+      <table>
+        <tr><td>writing-skills</td><td>새 스킬 생성/편집/검증</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 스킬 간 관계 ==================== -->
+<section>
+  <h2>4. 스킬 간 호출 관계</h2>
+  <div class="relations">
+<strong>using-superpowers</strong> (모든 대화 시작 시 자동)
+  │
+  ├─▶ <strong>brainstorming</strong> ──────────────────▶ <strong>writing-plans</strong>
+  │                                              │
+  │                                    ┌─────────┴─────────┐
+  │                                    ▼                   ▼
+  │                          <strong>subagent-driven-dev</strong>   <strong>executing-plans</strong>
+  │                                    │                   │
+  │                          ┌─────────┤                   │
+  │                          ▼         ▼                   │
+  │              <strong>requesting-code-review</strong>              │
+  │                          │                             │
+  │                          ▼                             │
+  │              <strong>code-reviewer</strong> (에이전트)              │
+  │                                                        │
+  │   ◀── (버그 발생 시) ── <strong>systematic-debugging</strong>        │
+  │   ◀── (구현 시) ────── <strong>test-driven-development</strong>     │
+  │   ◀── (완료 직전) ──── <strong>verification-before-completion</strong>
+  │                                    │                   │
+  │                                    └─────────┬─────────┘
+  │                                              ▼
+  │                               <strong>finishing-a-development-branch</strong>
+  │
+  ├─▶ <strong>using-git-worktrees</strong>  (격리 환경 — 계획 실행 전)
+  ├─▶ <strong>dispatching-parallel-agents</strong>  (독립 태스크 2개 이상)
+  └─▶ <strong>receiving-code-review</strong>  (외부 피드백 수신 시)</div>
+</section>
+
+<!-- ==================== 14개 스킬 상세 ==================== -->
+<section>
+  <h2>5. 14개 스킬 상세</h2>
+  <div class="skill-list">
+
+    <!-- 1 -->
+    <div class="skill-item">
+      <h3>1. brainstorming</h3>
+      <div class="trigger">트리거: 기능 생성, 컴포넌트 구축, 동작 변경 등 모든 창의적 작업 전</div>
+      <div class="phases">
+        <span class="phase">컨텍스트 탐색</span>
+        <span class="phase">명확화 질문 (1개씩)</span>
+        <span class="phase">2~3개 접근법 제안</span>
+        <span class="phase">섹션별 설계 승인</span>
+        <span class="phase">설계 문서 저장</span>
+        <span class="phase">자체 리뷰</span>
+      </div>
+      <div class="rule">핵심 규칙: 설계 승인 없이 구현 절대 불가 (Hard Gate)</div>
+    </div>
+
+    <!-- 2 -->
+    <div class="skill-item">
+      <h3>2. writing-plans</h3>
+      <div class="trigger">트리거: 스펙/요구사항이 있고 다단계 작업이 필요할 때</div>
+      <div class="phases">
+        <span class="phase">파일 구조 매핑</span>
+        <span class="phase">2~5분 단위 태스크 분할</span>
+        <span class="phase">계획서 작성 (파일/코드/명령/결과)</span>
+        <span class="phase">자체 리뷰</span>
+        <span class="phase">실행 방식 선택</span>
+      </div>
+      <div class="rule">핵심 규칙: placeholder 금지 ("TBD", "TODO", "Task N과 유사" 불허)</div>
+    </div>
+
+    <!-- 3 -->
+    <div class="skill-item">
+      <h3>3. executing-plans</h3>
+      <div class="trigger">트리거: 작성된 구현 계획이 있고 별도 세션에서 실행할 때</div>
+      <div class="phases">
+        <span class="phase">계획서 로드</span>
+        <span class="phase">비판적 리뷰</span>
+        <span class="phase">태스크별 순차 실행</span>
+        <span class="phase">검증</span>
+        <span class="phase">브랜치 마무리</span>
+      </div>
+      <div class="rule">핵심 규칙: main/master에서 직접 구현 금지 (명시적 동의 없이)</div>
+    </div>
+
+    <!-- 4 -->
+    <div class="skill-item">
+      <h3>4. subagent-driven-development</h3>
+      <div class="trigger">트리거: 구현 계획이 있고 태스크가 독립적이며 같은 세션에서 실행할 때</div>
+      <div class="phases">
+        <span class="phase">태스크 추출</span>
+        <span class="phase">구현자 디스패치</span>
+        <span class="phase" style="border-color:#4263eb">1차 리뷰: 스펙 준수</span>
+        <span class="phase" style="border-color:#e67700">2차 리뷰: 코드 품질</span>
+        <span class="phase">최종 리뷰</span>
+      </div>
+      <div class="rule">핵심 규칙: 태스크당 2단계 리뷰 필수, 병렬 구현자 디스패치 금지</div>
+    </div>
+
+    <!-- 5 -->
+    <div class="skill-item">
+      <h3>5. test-driven-development</h3>
+      <div class="trigger">트리거: 기능 구현, 버그 수정, 리팩토링, 동작 변경 시</div>
+      <div class="phases">
+        <span class="phase" style="border-color:#c92a2a">RED: 실패 테스트 작성</span>
+        <span class="phase" style="border-color:#2b8a3e">GREEN: 최소 코드로 통과</span>
+        <span class="phase" style="border-color:#4263eb">REFACTOR: 정리</span>
+      </div>
+      <div class="rule">핵심 규칙: 실패 테스트 없이 프로덕션 코드 작성 금지. 테스트 전 코드 작성 시 삭제 후 재시작</div>
+    </div>
+
+    <!-- 6 -->
+    <div class="skill-item">
+      <h3>6. systematic-debugging</h3>
+      <div class="trigger">트리거: 버그, 테스트 실패, 예상치 못한 동작, 성능 문제, 빌드 실패</div>
+      <div class="phases">
+        <span class="phase">1단계: 근본 원인 조사</span>
+        <span class="phase">2단계: 패턴 분석</span>
+        <span class="phase">3단계: 가설 &amp; 테스트</span>
+        <span class="phase">4단계: 구현</span>
+      </div>
+      <div class="rule">핵심 규칙: 근본 원인 조사 없이 수정 시도 금지. 3회 실패 시 아키텍처 문제로 전환</div>
+    </div>
+
+    <!-- 7 -->
+    <div class="skill-item">
+      <h3>7. requesting-code-review</h3>
+      <div class="trigger">트리거: 태스크 완료, 주요 기능 구현, merge 전, 복잡한 버그 수정 후</div>
+      <div class="phases">
+        <span class="phase">git SHA 확인</span>
+        <span class="phase">code-reviewer 디스패치</span>
+        <span class="phase">피드백 분류 및 처리</span>
+      </div>
+      <div class="rule">핵심 규칙: Critical 이슈는 반드시 즉시 수정. "단순하니까 생략" 금지</div>
+    </div>
+
+    <!-- 8 -->
+    <div class="skill-item">
+      <h3>8. receiving-code-review</h3>
+      <div class="trigger">트리거: 코드 리뷰 피드백을 받았을 때</div>
+      <div class="phases">
+        <span class="phase">READ</span>
+        <span class="phase">UNDERSTAND</span>
+        <span class="phase">VERIFY</span>
+        <span class="phase">EVALUATE</span>
+        <span class="phase">RESPOND</span>
+        <span class="phase">IMPLEMENT</span>
+      </div>
+      <div class="rule">핵심 규칙: 동조적 반응 금지. 기술적으로 틀리면 근거와 함께 반박</div>
+    </div>
+
+    <!-- 9 -->
+    <div class="skill-item">
+      <h3>9. verification-before-completion</h3>
+      <div class="trigger">트리거: 작업 완료/수정/통과를 주장하기 직전</div>
+      <div class="phases">
+        <span class="phase">IDENTIFY</span>
+        <span class="phase">RUN</span>
+        <span class="phase">READ</span>
+        <span class="phase">VERIFY</span>
+        <span class="phase">CLAIM</span>
+      </div>
+      <div class="rule">핵심 규칙: 증거 없이 완료 주장 금지. "should", "probably" 사용 금지</div>
+    </div>
+
+    <!-- 10 -->
+    <div class="skill-item">
+      <h3>10. using-git-worktrees</h3>
+      <div class="trigger">트리거: 격리가 필요한 기능 작업 시작 시, 구현 계획 실행 전</div>
+      <div class="phases">
+        <span class="phase">디렉토리 선택</span>
+        <span class="phase">.gitignore 검증</span>
+        <span class="phase">worktree 생성</span>
+        <span class="phase">셋업 실행</span>
+        <span class="phase">테스트 기준선 검증</span>
+      </div>
+      <div class="rule">핵심 규칙: .gitignore 검증 없이 worktree 생성 금지</div>
+    </div>
+
+    <!-- 11 -->
+    <div class="skill-item">
+      <h3>11. finishing-a-development-branch</h3>
+      <div class="trigger">트리거: 구현 완료, 테스트 통과, 통합 준비 완료 시</div>
+      <div class="phases">
+        <span class="phase">테스트 실행</span>
+        <span class="phase">기본 브랜치 확인</span>
+        <span class="phase">4가지 옵션 제시</span>
+        <span class="phase">실행 &amp; 정리</span>
+      </div>
+      <div class="rule">핵심 규칙: 테스트 실패 시 옵션 제시 불가. 폐기 시 "discard" 확인 필요</div>
+    </div>
+
+    <!-- 12 -->
+    <div class="skill-item">
+      <h3>12. dispatching-parallel-agents</h3>
+      <div class="trigger">트리거: 2개 이상의 독립적 태스크, 공유 상태 없음, 순차 의존성 없음</div>
+      <div class="phases">
+        <span class="phase">독립 도메인 식별</span>
+        <span class="phase">에이전트별 태스크 생성</span>
+        <span class="phase">병렬 디스패치</span>
+        <span class="phase">결과 리뷰 &amp; 충돌 확인</span>
+      </div>
+      <div class="rule">핵심 규칙: 에이전트 간 변경이 간섭 가능하면 사용 금지</div>
+    </div>
+
+    <!-- 13 -->
+    <div class="skill-item">
+      <h3>13. using-superpowers</h3>
+      <div class="trigger">트리거: 모든 대화 시작 시 (자동)</div>
+      <div class="phases">
+        <span class="phase">스킬 적용 가능성 판단</span>
+        <span class="phase">Skill tool 호출</span>
+        <span class="phase">스킬 지시 따르기</span>
+      </div>
+      <div class="rule">핵심 규칙: 1%라도 관련 스킬이 있으면 반드시 호출. 질문 전에도 스킬 체크 필수</div>
+    </div>
+
+    <!-- 14 -->
+    <div class="skill-item">
+      <h3>14. writing-skills</h3>
+      <div class="trigger">트리거: 새 스킬 생성, 기존 스킬 편집, 배포 전 검증</div>
+      <div class="phases">
+        <span class="phase" style="border-color:#c92a2a">RED: 스킬 없이 테스트</span>
+        <span class="phase" style="border-color:#2b8a3e">GREEN: 최소 스킬 작성</span>
+        <span class="phase" style="border-color:#4263eb">REFACTOR: 우회 패턴 차단</span>
+      </div>
+      <div class="rule">핵심 규칙: 실패 테스트 없이 스킬 작성 금지 (TDD 원칙 동일 적용)</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ==================== 부록 ==================== -->
+<section>
+  <h2>6. 부록: 커스텀 에이전트 &amp; 훅</h2>
+  <div class="category-grid">
+    <div class="cat-card">
+      <h3>code-reviewer (에이전트)</h3>
+      <table>
+        <tr><td>위치</td><td>agents/code-reviewer.md</td></tr>
+        <tr><td>역할</td><td>시니어 코드 리뷰어</td></tr>
+        <tr><td>호출자</td><td>requesting-code-review 스킬</td></tr>
+        <tr><td>검토 항목</td><td>계획 정합성, 코드 품질, 아키텍처, 문서화, 보안/성능</td></tr>
+        <tr><td>이슈 분류</td><td>Critical (필수) / Important (권장) / Suggestion (선택)</td></tr>
+      </table>
+    </div>
+    <div class="cat-card">
+      <h3>session-start (훅)</h3>
+      <table>
+        <tr><td>위치</td><td>hooks/hooks.json</td></tr>
+        <tr><td>트리거</td><td>세션 시작, clear, compact</td></tr>
+        <tr><td>동작</td><td>using-superpowers 스킬을 시스템에 주입</td></tr>
+        <tr><td>실행 방식</td><td>동기 (blocking)</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

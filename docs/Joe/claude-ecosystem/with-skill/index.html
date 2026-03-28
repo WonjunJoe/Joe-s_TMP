@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLAUDE_ECOSYSTEM // 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;1,400&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --phosphor: #00ff9d;
+      --phosphor-dim: #00ff9d44;
+      --phosphor-bright: #7dffcc;
+      --amber: #ffb800;
+      --amber-dim: #ffb80033;
+      --magenta: #ff2d7b;
+      --magenta-dim: #ff2d7b33;
+      --cyan: #00d4ff;
+      --bg-deep: #0a0a0f;
+      --bg-panel: #0d0d14;
+      --bg-card: #12121c;
+      --bg-card-hover: #1a1a28;
+      --text: #c8c8d4;
+      --text-dim: #666680;
+      --border: #1e1e30;
+      --scanline: rgba(0, 255, 157, 0.03);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+      background: var(--bg-deep);
+      color: var(--text);
+      line-height: 1.8;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* CRT Scanline overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        var(--scanline) 2px,
+        var(--scanline) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Noise texture */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.5;
+    }
+
+    /* ===== HEADER / HERO ===== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      padding: 40px 20px;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 600px; height: 600px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, var(--phosphor-dim) 0%, transparent 70%);
+      animation: pulse-glow 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+      50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    .hero-badge {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--amber);
+      border: 1px solid var(--amber-dim);
+      padding: 6px 20px;
+      margin-bottom: 32px;
+      position: relative;
+      z-index: 1;
+      animation: fadeSlideUp 0.8s ease-out;
+    }
+
+    .hero h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      position: relative;
+      z-index: 1;
+      animation: fadeSlideUp 0.8s ease-out 0.15s both;
+    }
+
+    .hero h1 .glow {
+      color: var(--phosphor);
+      text-shadow: 0 0 20px var(--phosphor-dim), 0 0 60px var(--phosphor-dim);
+    }
+
+    .hero h1 .accent { color: var(--magenta); }
+
+    .hero-sub {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      margin-top: 24px;
+      max-width: 500px;
+      position: relative;
+      z-index: 1;
+      animation: fadeSlideUp 0.8s ease-out 0.3s both;
+    }
+
+    .hero-sub .typing-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1.1em;
+      background: var(--phosphor);
+      margin-left: 4px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      animation: float 2s ease-in-out infinite;
+    }
+
+    .scroll-hint::after {
+      content: '\\2193';
+      display: block;
+      text-align: center;
+      font-size: 1.2rem;
+      margin-top: 4px;
+      color: var(--phosphor);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(8px); }
+    }
+
+    /* ===== NAV ===== */
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-deep);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-inner::-webkit-scrollbar { display: none; }
+
+    .nav-link {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      text-decoration: none;
+      padding: 16px 20px;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .nav-link:hover {
+      color: var(--phosphor);
+      border-bottom-color: var(--phosphor);
+      background: linear-gradient(180deg, transparent 0%, var(--phosphor-dim) 100%);
+    }
+
+    /* ===== MAIN CONTAINER ===== */
+    .main { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+    /* ===== SECTION ===== */
+    .section {
+      padding: 80px 0;
+      border-bottom: 1px solid var(--border);
+      animation: revealSection 0.6s ease-out both;
+    }
+
+    @keyframes revealSection {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-label::before {
+      content: '//';
+      color: var(--text-dim);
+    }
+
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .section-desc {
+      font-size: 0.88rem;
+      color: var(--text-dim);
+      max-width: 700px;
+      margin-bottom: 40px;
+      font-weight: 300;
+    }
+
+    /* ===== CONCEPT BLOCKS ===== */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 2px;
+      margin: 32px 0;
+    }
+
+    .concept-block {
+      background: var(--bg-card);
+      padding: 28px 24px;
+      border-left: 3px solid var(--phosphor-dim);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .concept-block::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--phosphor-dim) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .concept-block:hover {
+      background: var(--bg-card-hover);
+      border-left-color: var(--phosphor);
+    }
+
+    .concept-block:hover::after { opacity: 1; }
+
+    .concept-block h4 {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--phosphor);
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .concept-block p {
+      font-size: 0.82rem;
+      color: var(--text);
+      position: relative;
+      z-index: 1;
+      line-height: 1.7;
+    }
+
+    /* ===== FRAMEWORK TABLE ===== */
+    .framework-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 32px 0;
+      font-size: 0.82rem;
+    }
+
+    .framework-table th {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--amber);
+      text-align: left;
+      padding: 14px 16px;
+      border-bottom: 2px solid var(--amber-dim);
+      background: var(--bg-panel);
+    }
+
+    .framework-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .framework-table tr:hover td {
+      background: var(--bg-card);
+    }
+
+    .framework-table .name {
+      color: var(--phosphor-bright);
+      font-weight: 600;
+    }
+
+    .framework-table .dim { color: var(--text-dim); }
+
+    /* ===== SDK HIGHLIGHT ===== */
+    .sdk-highlight {
+      background: linear-gradient(135deg, var(--bg-card) 0%, #141428 100%);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 36px;
+      margin: 32px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sdk-highlight::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, var(--phosphor), var(--cyan));
+    }
+
+    .sdk-highlight h4 {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .sdk-highlight p { font-size: 0.85rem; color: var(--text); margin-bottom: 8px; }
+
+    .sdk-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .sdk-feat {
+      font-size: 0.7rem;
+      padding: 4px 12px;
+      border: 1px solid var(--phosphor-dim);
+      color: var(--phosphor);
+      letter-spacing: 1px;
+    }
+
+    /* ===== SKILL CARDS ===== */
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 3px;
+      margin: 32px 0;
+    }
+
+    .skill-card {
+      background: var(--bg-card);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      cursor: default;
+    }
+
+    .skill-card::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--phosphor), var(--cyan));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .skill-card:hover { background: var(--bg-card-hover); transform: translateY(-2px); }
+    .skill-card:hover::before { transform: scaleX(1); }
+
+    .skill-card .skill-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--border);
+      position: absolute;
+      top: 12px; right: 20px;
+      line-height: 1;
+    }
+
+    .skill-card h4 {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.85rem;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .skill-card p { font-size: 0.82rem; color: var(--text-dim); }
+
+    .skill-tag {
+      display: inline-block;
+      font-size: 0.62rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      margin-top: 14px;
+      margin-right: 4px;
+    }
+
+    .skill-tag.method { border: 1px solid var(--phosphor-dim); color: var(--phosphor); }
+    .skill-tag.debug { border: 1px solid var(--magenta-dim); color: var(--magenta); }
+    .skill-tag.design { border: 1px solid var(--cyan); color: var(--cyan); border-color: rgba(0,212,255,0.3); }
+    .skill-tag.infra { border: 1px solid var(--amber-dim); color: var(--amber); }
+
+    /* ===== MCP CARDS ===== */
+    .mcp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 2px;
+      margin: 32px 0;
+    }
+
+    .mcp-card {
+      background: var(--bg-card);
+      padding: 24px;
+      border-top: 2px solid var(--border);
+      transition: all 0.3s;
+    }
+
+    .mcp-card:hover {
+      border-top-color: var(--cyan);
+      background: var(--bg-card-hover);
+    }
+
+    .mcp-card .mcp-icon {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .mcp-card h4 {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      color: var(--cyan);
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .mcp-card p { font-size: 0.8rem; color: var(--text-dim); }
+
+    .mcp-badge {
+      display: inline-block;
+      font-size: 0.58rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      margin-top: 12px;
+      background: rgba(0, 212, 255, 0.08);
+      color: var(--cyan);
+    }
+
+    /* ===== OPENCLAW ===== */
+    .openclaw-hero {
+      background: linear-gradient(135deg, #12121c 0%, #1a0a20 50%, #0a1520 100%);
+      border: 1px solid var(--border);
+      padding: 48px 40px;
+      margin: 32px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .openclaw-hero::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -20%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, var(--magenta-dim) 0%, transparent 70%);
+      opacity: 0.4;
+    }
+
+    .openclaw-hero .stat-row {
+      display: flex;
+      gap: 40px;
+      margin: 24px 0;
+      flex-wrap: wrap;
+    }
+
+    .openclaw-hero .stat {
+      position: relative;
+      z-index: 1;
+    }
+
+    .openclaw-hero .stat-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--magenta);
+      line-height: 1.2;
+    }
+
+    .openclaw-hero .stat-label {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .openclaw-hero h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.6rem;
+      color: #fff;
+      position: relative;
+      z-index: 1;
+    }
+
+    .openclaw-hero > p {
+      font-size: 0.88rem;
+      color: var(--text);
+      position: relative;
+      z-index: 1;
+      max-width: 600px;
+    }
+
+    .openclaw-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2px;
+      margin: 24px 0;
+    }
+
+    .oc-feat {
+      background: var(--bg-card);
+      padding: 20px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: background 0.3s;
+    }
+
+    .oc-feat:hover { background: var(--bg-card-hover); }
+
+    .oc-feat .oc-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .oc-feat h5 {
+      font-size: 0.82rem;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .oc-feat p { font-size: 0.78rem; color: var(--text-dim); }
+
+    .code-block {
+      background: #000;
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      margin: 24px 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      overflow-x: auto;
+      position: relative;
+    }
+
+    .code-block .prompt { color: var(--phosphor); }
+    .code-block .cmd { color: #fff; }
+    .code-block .flag { color: var(--amber); }
+
+    /* ===== RESOURCES ===== */
+    .resource-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2px;
+      margin: 32px 0;
+    }
+
+    .resource-item {
+      background: var(--bg-card);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.3s;
+      border-left: 3px solid transparent;
+    }
+
+    .resource-item:hover {
+      background: var(--bg-card-hover);
+      border-left-color: var(--phosphor);
+      color: #fff;
+    }
+
+    .resource-item .r-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .resource-item .r-desc {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .resource-item .r-arrow {
+      font-family: 'Orbitron', monospace;
+      color: var(--phosphor-dim);
+      font-size: 0.9rem;
+      transition: transform 0.3s;
+    }
+
+    .resource-item:hover .r-arrow {
+      color: var(--phosphor);
+      transform: translateX(4px);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      text-align: center;
+      padding: 60px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 6px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .footer p {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    /* ===== SCROLL ANIMATIONS ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 640px) {
+      .hero { min-height: 80vh; padding: 40px 16px; }
+      .section { padding: 48px 0; }
+      .openclaw-hero { padding: 28px 20px; }
+      .sdk-highlight { padding: 24px 20px; }
+      .skill-grid, .mcp-grid, .resource-list { grid-template-columns: 1fr; }
+      .concept-grid { grid-template-columns: 1fr 1fr; }
+      .nav-link { padding: 14px 14px; font-size: 0.6rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="hero-badge">SYSTEM://OVERVIEW</div>
+  <h1>
+    <span class="glow">CLAUDE</span><br>
+    <span class="accent">ECO</span>SYSTEM
+  </h1>
+  <p class="hero-sub">
+    Skills &middot; Plugins &middot; MCP &middot; Agents &mdash; 2026년 생태계 가이드
+    <span class="typing-cursor"></span>
+  </p>
+  <div class="scroll-hint">SCROLL</div>
+</div>
+
+<!-- ===== NAV ===== -->
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <a href="#agents" class="nav-link">Agent 개괄</a>
+    <a href="#skills" class="nav-link">Skills</a>
+    <a href="#mcp" class="nav-link">MCP 서버</a>
+    <a href="#openclaw" class="nav-link">OpenClaw</a>
+    <a href="#resources" class="nav-link">리소스</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- ===== AGENTS ===== -->
+  <section id="agents" class="section">
+    <div class="reveal">
+      <div class="section-label">Section 01</div>
+      <h2 class="section-title">AI Agent 개괄</h2>
+      <p class="section-desc">
+        LLM이 도구를 사용하고, 판단하고, 반복적으로 행동하며 복잡한 작업을 자율 수행하는 시스템.
+        2026년 현재, 조직의 57%가 프로덕션에서 AI 에이전트를 운영 중입니다.
+      </p>
+    </div>
+
+    <div class="concept-grid reveal">
+      <div class="concept-block">
+        <h4>에이전트 루프</h4>
+        <p>관찰 &rarr; 판단 &rarr; 도구 호출 &rarr; 결과 해석을 반복하는 핵심 사이클</p>
+      </div>
+      <div class="concept-block">
+        <h4>도구 사용</h4>
+        <p>파일 편집, 셸 명령, API 호출 등 외부 시스템과의 상호작용</p>
+      </div>
+      <div class="concept-block">
+        <h4>서브에이전트</h4>
+        <p>복잡한 작업을 병렬 하위 에이전트로 분할 처리</p>
+      </div>
+      <div class="concept-block">
+        <h4>MCP 프로토콜</h4>
+        <p>AI 모델과 외부 도구를 연결하는 사실상의 표준</p>
+      </div>
+    </div>
+
+    <div class="sdk-highlight reveal">
+      <h4>Claude Agent SDK</h4>
+      <p>Claude Code의 에이전트 기능을 프로그래밍 방식으로 활용할 수 있는 공식 SDK입니다.
+         Python과 TypeScript 두 가지 버전을 제공합니다.</p>
+      <div class="sdk-features">
+        <span class="sdk-feat">파일 작업</span>
+        <span class="sdk-feat">Bash 실행</span>
+        <span class="sdk-feat">웹 검색</span>
+        <span class="sdk-feat">MCP 통합</span>
+        <span class="sdk-feat">Computer Use</span>
+        <span class="sdk-feat">서브에이전트</span>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Orbitron',monospace;font-size:0.75rem;letter-spacing:3px;color:var(--amber);margin:32px 0 16px;">프레임워크 비교</h3>
+    <table class="framework-table reveal">
+      <thead>
+        <tr><th>프레임워크</th><th>특징</th><th>적합 용도</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="name">Claude Agent SDK</td>
+          <td>Claude Code 동일 루프, MCP 네이티브</td>
+          <td class="dim">Claude 기반 에이전트</td>
+        </tr>
+        <tr>
+          <td class="name">LangGraph</td>
+          <td>워크플로우를 방향 그래프로 모델링</td>
+          <td class="dim">멀티스텝 파이프라인</td>
+        </tr>
+        <tr>
+          <td class="name">CrewAI</td>
+          <td>전문가 팀 모델링, 역할/목표 기반</td>
+          <td class="dim">멀티에이전트 협업</td>
+        </tr>
+        <tr>
+          <td class="name">AutoGen</td>
+          <td>멀티에이전트 대화 프레임워크 (Microsoft)</td>
+          <td class="dim">에이전트 간 토론</td>
+        </tr>
+        <tr>
+          <td class="name">GitAgent</td>
+          <td>에이전트의 Docker — 프레임워크 간 호환</td>
+          <td class="dim">이기종 통합</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===== SKILLS ===== -->
+  <section id="skills" class="section">
+    <div class="reveal">
+      <div class="section-label">Section 02</div>
+      <h2 class="section-title">Claude Code Skills</h2>
+      <p class="section-desc">
+        SKILL.md 파일로 정의하며, Claude가 상황에 맞게 자동 활성화하는 확장 시스템입니다.
+        Superpowers 프레임워크가 가장 널리 사용됩니다.
+      </p>
+    </div>
+
+    <div class="skill-grid reveal">
+      <div class="skill-card">
+        <span class="skill-num">01</span>
+        <h4>Test-Driven Development</h4>
+        <p>테스트 먼저, 구현은 나중에. Red-Green-Refactor 사이클을 강제하여 안정적인 코드를 보장합니다.</p>
+        <span class="skill-tag method">방법론</span>
+      </div>
+      <div class="skill-card">
+        <span class="skill-num">02</span>
+        <h4>Systematic Debugging</h4>
+        <p>버그 발견 시 체계적으로 원인을 추적하는 프로세스. 추측 대신 증거 기반 디버깅을 수행합니다.</p>
+        <span class="skill-tag debug">디버깅</span>
+      </div>
+      <div class="skill-card">
+        <span class="skill-num">03</span>
+        <h4>Brainstorming</h4>
+        <p>구현 전 사용자 의도, 요구사항, 설계를 탐색합니다. 모든 창의적 작업의 시작점입니다.</p>
+        <span class="skill-tag design">설계</span>
+      </div>
+      <div class="skill-card">
+        <span class="skill-num">04</span>
+        <h4>Code Review</h4>
+        <p>코드 리뷰 피드백을 기술적 엄밀성으로 검증합니다. 맹목적 동의 대신 기술적 판단을 우선합니다.</p>
+        <span class="skill-tag method">품질</span>
+      </div>
+      <div class="skill-card">
+        <span class="skill-num">05</span>
+        <h4>Writing Plans</h4>
+        <p>멀티스텝 작업의 구현 계획을 체계적으로 수립합니다. 코드 전에 아키텍처를 먼저 설계합니다.</p>
+        <span class="skill-tag design">설계</span>
+      </div>
+      <div class="skill-card">
+        <span class="skill-num">06</span>
+        <h4>Git Worktrees</h4>
+        <p>격리된 Git worktree에서 안전하게 실험적 작업을 수행합니다. 메인 브랜치를 보호합니다.</p>
+        <span class="skill-tag infra">인프라</span>
+      </div>
+      <div class="skill-card">
+        <span class="skill-num">07</span>
+        <h4>Frontend Design</h4>
+        <p>AI 슬랍이 아닌 진짜 디자인. 대담한 미학적 방향성과 프로덕션급 UI를 생성합니다.</p>
+        <span class="skill-tag design">디자인</span><span class="skill-tag method">공식</span>
+      </div>
+      <div class="skill-card">
+        <span class="skill-num">08</span>
+        <h4>Parallel Agents</h4>
+        <p>독립적인 2개+ 작업을 병렬 서브에이전트로 동시 처리합니다. 효율성을 극대화합니다.</p>
+        <span class="skill-tag infra">인프라</span>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Orbitron',monospace;font-size:0.75rem;letter-spacing:3px;color:var(--amber);margin:32px 0 16px;">커뮤니티 스킬 모음</h3>
+    <table class="framework-table reveal">
+      <thead>
+        <tr><th>프로젝트</th><th>규모</th><th>특징</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="name">claude-code-plugins-plus-skills</td>
+          <td>340 플러그인 + 1,367 스킬</td>
+          <td class="dim">CCPI 패키지 매니저 포함</td>
+        </tr>
+        <tr>
+          <td class="name">alirezarezvani/claude-skills</td>
+          <td>192+ 스킬</td>
+          <td class="dim">11개 코딩 에이전트 호환</td>
+        </tr>
+        <tr>
+          <td class="name">awesome-claude-code-toolkit</td>
+          <td>135 에이전트, 35 스킬</td>
+          <td class="dim">가장 포괄적인 툴킷</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===== MCP ===== -->
+  <section id="mcp" class="section">
+    <div class="reveal">
+      <div class="section-label">Section 03</div>
+      <h2 class="section-title">MCP 서버 &amp; Plugins</h2>
+      <p class="section-desc">
+        Model Context Protocol — AI 모델과 외부 도구를 연결하는 표준.
+        1,200개+ 서버가 존재하며, OpenAI와 Google도 채택했습니다.
+      </p>
+    </div>
+
+    <div class="mcp-grid reveal">
+      <div class="mcp-card">
+        <span class="mcp-icon">&#9733;</span>
+        <h4>GitHub</h4>
+        <p>이슈, PR, 저장소 관리를 Claude에서 직접 수행</p>
+        <span class="mcp-badge">공식 &middot; 필수</span>
+      </div>
+      <div class="mcp-card">
+        <span class="mcp-icon">&#9881;</span>
+        <h4>Context7</h4>
+        <p>라이브러리/프레임워크 최신 공식 문서를 실시간 제공</p>
+        <span class="mcp-badge">문서 &middot; 필수</span>
+      </div>
+      <div class="mcp-card">
+        <span class="mcp-icon">&#128193;</span>
+        <h4>Filesystem</h4>
+        <p>접근 제어 기반의 안전한 파일 시스템 작업</p>
+        <span class="mcp-badge">레퍼런스</span>
+      </div>
+      <div class="mcp-card">
+        <span class="mcp-icon">&#129504;</span>
+        <h4>Memory</h4>
+        <p>지식 그래프 기반의 영속적 메모리 시스템</p>
+        <span class="mcp-badge">레퍼런스</span>
+      </div>
+      <div class="mcp-card">
+        <span class="mcp-icon">&#128161;</span>
+        <h4>Sequential Thinking</h4>
+        <p>반성적 사고 시퀀스로 복잡한 문제를 해결</p>
+        <span class="mcp-badge">추론</span>
+      </div>
+      <div class="mcp-card">
+        <span class="mcp-icon">&#128172;</span>
+        <h4>Slack</h4>
+        <p>대화 스레드, 메타데이터, 워크플로우 캡처</p>
+        <span class="mcp-badge">협업</span>
+      </div>
+      <div class="mcp-card">
+        <span class="mcp-icon">&#128221;</span>
+        <h4>Notion</h4>
+        <p>페이지, 데이터베이스, 태스크를 LLM에 노출</p>
+        <span class="mcp-badge">협업</span>
+      </div>
+      <div class="mcp-card">
+        <span class="mcp-icon">&#9889;</span>
+        <h4>Zapier</h4>
+        <p>수천 개 앱과 LLM 자동 연동 워크플로우</p>
+        <span class="mcp-badge">자동화</span>
+      </div>
+    </div>
+
+    <div class="sdk-highlight reveal">
+      <h4>Claude Code Plugins 시스템</h4>
+      <p>2025년 10월 퍼블릭 베타로 출시. 슬래시 커맨드, 에이전트, 훅, MCP 서버를 확장합니다.</p>
+      <div class="sdk-features">
+        <span class="sdk-feat">Hooks</span>
+        <span class="sdk-feat">Slash Commands</span>
+        <span class="sdk-feat">Sub-agents</span>
+        <span class="sdk-feat">MCP Integration</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== OPENCLAW ===== -->
+  <section id="openclaw" class="section">
+    <div class="reveal">
+      <div class="section-label">Section 04</div>
+      <h2 class="section-title">OpenClaw</h2>
+      <p class="section-desc">
+        로컬에서 실행하는 개인 AI 어시스턴트. 20개+ 메시징 플랫폼을 하나로 통합합니다.
+      </p>
+    </div>
+
+    <div class="openclaw-hero reveal">
+      <h3>Your Local AI Assistant</h3>
+      <p style="margin-top:12px;">사용자 기기에서 직접 실행되는 로컬 우선 아키텍처. 데이터 주권을 보장하면서 모든 메시징 플랫폼을 하나로 통합합니다.</p>
+      <div class="stat-row">
+        <div class="stat">
+          <div class="stat-val">339K+</div>
+          <div class="stat-label">Stars</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">23K+</div>
+          <div class="stat-label">Commits</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">20+</div>
+          <div class="stat-label">Platforms</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">66K+</div>
+          <div class="stat-label">Forks</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="openclaw-features reveal">
+      <div class="oc-feat">
+        <span class="oc-icon">&#128172;</span>
+        <div>
+          <h5>멀티 채널 통합</h5>
+          <p>WhatsApp, Telegram, Slack, Discord, Signal, iMessage, Teams, Matrix 등</p>
+        </div>
+      </div>
+      <div class="oc-feat">
+        <span class="oc-icon">&#127908;</span>
+        <div>
+          <h5>음성 기능</h5>
+          <p>Wake and Talk 모드 &mdash; ElevenLabs 연동, macOS/iOS/Android 지원</p>
+        </div>
+      </div>
+      <div class="oc-feat">
+        <span class="oc-icon">&#127912;</span>
+        <div>
+          <h5>Live Canvas</h5>
+          <p>에이전트 주도 시각적 워크스페이스 (A2UI 기반)</p>
+        </div>
+      </div>
+      <div class="oc-feat">
+        <span class="oc-icon">&#128187;</span>
+        <div>
+          <h5>브라우저 자동화</h5>
+          <p>전용 Chrome/Chromium 제어로 웹 작업 자동화</p>
+        </div>
+      </div>
+      <div class="oc-feat">
+        <span class="oc-icon">&#128268;</span>
+        <div>
+          <h5>ClawHub 스킬 레지스트리</h5>
+          <p>확장 가능한 스킬 시스템으로 기능을 무한 확장</p>
+        </div>
+      </div>
+      <div class="oc-feat">
+        <span class="oc-icon">&#128274;</span>
+        <div>
+          <h5>로컬 우선 아키텍처</h5>
+          <p>WebSocket 게이트웨이로 세션/라우팅 관리, 데이터는 기기에 보관</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="code-block reveal">
+      <span class="prompt">$</span> <span class="cmd">npm install</span> <span class="flag">-g</span> <span class="cmd">openclaw@latest</span><br>
+      <span class="prompt">$</span> <span class="cmd">openclaw onboard</span> <span class="flag">--install-daemon</span>
+    </div>
+
+    <table class="framework-table reveal">
+      <thead>
+        <tr><th>기술 스택</th><th>내용</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="name">언어</td><td>TypeScript/JavaScript (Node.js 24 권장)</td></tr>
+        <tr><td class="name">구조</td><td>모노레포 (apps, packages, skills, extensions)</td></tr>
+        <tr><td class="name">메시징</td><td>Baileys, grammY, Bolt, discord.js, signal-cli</td></tr>
+        <tr><td class="name">UI</td><td>React 기반 Control UI + WebChat</td></tr>
+        <tr><td class="name">배포</td><td>npm, Docker, Nix, systemd/launchd</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===== RESOURCES ===== -->
+  <section id="resources" class="section" style="border-bottom:none;">
+    <div class="reveal">
+      <div class="section-label">Section 05</div>
+      <h2 class="section-title">리소스</h2>
+      <p class="section-desc">생태계 탐색을 위한 핵심 링크들</p>
+    </div>
+
+    <div class="resource-list reveal">
+      <a href="https://github.com/obra/superpowers" target="_blank" class="resource-item">
+        <div>
+          <div class="r-name">Superpowers 프레임워크</div>
+          <div class="r-desc">소프트웨어 개발 방법론 스킬 프레임워크</div>
+        </div>
+        <span class="r-arrow">&rarr;</span>
+      </a>
+      <a href="https://github.com/anthropics/skills" target="_blank" class="resource-item">
+        <div>
+          <div class="r-name">Anthropic 공식 Skills</div>
+          <div class="r-desc">공식 에이전트 스킬 저장소</div>
+        </div>
+        <span class="r-arrow">&rarr;</span>
+      </a>
+      <a href="https://registry.modelcontextprotocol.io/" target="_blank" class="resource-item">
+        <div>
+          <div class="r-name">MCP 레지스트리</div>
+          <div class="r-desc">MCP 서버의 공식 앱 스토어</div>
+        </div>
+        <span class="r-arrow">&rarr;</span>
+      </a>
+      <a href="https://github.com/wong2/awesome-mcp-servers" target="_blank" class="resource-item">
+        <div>
+          <div class="r-name">Awesome MCP Servers</div>
+          <div class="r-desc">커뮤니티 큐레이션 MCP 서버 목록</div>
+        </div>
+        <span class="r-arrow">&rarr;</span>
+      </a>
+      <a href="https://platform.claude.com/docs/en/agent-sdk/overview" target="_blank" class="resource-item">
+        <div>
+          <div class="r-name">Agent SDK 문서</div>
+          <div class="r-desc">Claude Agent SDK 공식 가이드</div>
+        </div>
+        <span class="r-arrow">&rarr;</span>
+      </a>
+      <a href="https://github.com/hesreallyhim/awesome-claude-code" target="_blank" class="resource-item">
+        <div>
+          <div class="r-name">Awesome Claude Code</div>
+          <div class="r-desc">스킬, 훅, 에이전트 큐레이션 목록</div>
+        </div>
+        <span class="r-arrow">&rarr;</span>
+      </a>
+      <a href="https://claudemarketplaces.com/" target="_blank" class="resource-item">
+        <div>
+          <div class="r-name">Claude Marketplaces</div>
+          <div class="r-desc">플러그인/스킬/MCP 서버 디렉토리</div>
+        </div>
+        <span class="r-arrow">&rarr;</span>
+      </a>
+      <a href="https://github.com/openclaw/openclaw" target="_blank" class="resource-item">
+        <div>
+          <div class="r-name">OpenClaw</div>
+          <div class="r-desc">로컬 AI 어시스턴트 프로젝트</div>
+        </div>
+        <span class="r-arrow">&rarr;</span>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<footer class="footer">
+  <div class="footer-logo">CLAUDE_ECOSYSTEM</div>
+  <p>2026.03 &mdash; Joe's TMP</p>
+</footer>
+
+<script>
+  // Intersection Observer for scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

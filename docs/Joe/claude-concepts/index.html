@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code Concepts Atlas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    :root {
+      --bg: #f7f7f8;
+      --bg-card: #ffffff;
+      --bg-elevated: #f0f0f3;
+      --border: #e0e0e6;
+      --text: #1a1a2e;
+      --text-dim: #555566;
+      --text-muted: #888899;
+
+      --skill: #d6336c;
+      --skill-bg: rgba(214,51,108,0.06);
+      --tool: #1971c2;
+      --tool-bg: rgba(25,113,194,0.06);
+      --agent: #7048e8;
+      --agent-bg: rgba(112,72,232,0.06);
+      --mcp: #0ca678;
+      --mcp-bg: rgba(12,166,120,0.06);
+      --team: #e67700;
+      --team-bg: rgba(230,119,0,0.06);
+      --hook: #d9480f;
+      --hook-bg: rgba(217,72,15,0.06);
+      --plugin: #c92a2a;
+      --plugin-bg: rgba(201,42,42,0.06);
+      --memory: #0c8599;
+      --memory-bg: rgba(12,133,153,0.06);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Pretendard', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      padding: 80px 48px 60px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -120px; right: -120px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(112,72,232,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    header h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 56px;
+      font-weight: 400;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    header h1 em { font-style: italic; color: var(--agent); }
+    header .subtitle {
+      font-size: 16px;
+      color: var(--text-dim);
+      max-width: 600px;
+    }
+    header .meta {
+      margin-top: 24px;
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ===== NAV ===== */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(247,247,248,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
+      display: flex;
+      gap: 0;
+      overflow-x: auto;
+    }
+    nav a {
+      display: block;
+      padding: 14px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-dim);
+      text-decoration: none;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    nav a:hover { color: var(--text); border-bottom-color: var(--text-dim); }
+
+    /* ===== LAYOUT ===== */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+    section {
+      padding: 72px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    section:last-child { border-bottom: none; }
+
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 36px;
+      font-weight: 400;
+      margin-bottom: 24px;
+      line-height: 1.2;
+    }
+    .section-desc {
+      font-size: 15px;
+      color: var(--text-dim);
+      max-width: 640px;
+      margin-bottom: 40px;
+    }
+
+    /* ===== CONCEPT CARDS (overview) ===== */
+    .concepts-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) { .concepts-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .concepts-grid { grid-template-columns: 1fr; } }
+
+    .concept-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      background: var(--bg-card);
+      transition: border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .concept-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .concept-card { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+    .concept-card:hover { border-color: #c0c0cc; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+    .concept-card .icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+    .concept-card h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .concept-card .def {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+    .concept-card .analogy {
+      font-size: 12px;
+      font-style: italic;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+
+    /* card color variants */
+    .card-skill::before { background: var(--skill); }
+    .card-skill .icon { background: var(--skill-bg); color: var(--skill); }
+    .card-skill h3 { color: var(--skill); }
+
+    .card-tool::before { background: var(--tool); }
+    .card-tool .icon { background: var(--tool-bg); color: var(--tool); }
+    .card-tool h3 { color: var(--tool); }
+
+    .card-agent::before { background: var(--agent); }
+    .card-agent .icon { background: var(--agent-bg); color: var(--agent); }
+    .card-agent h3 { color: var(--agent); }
+
+    .card-mcp::before { background: var(--mcp); }
+    .card-mcp .icon { background: var(--mcp-bg); color: var(--mcp); }
+    .card-mcp h3 { color: var(--mcp); }
+
+    .card-team::before { background: var(--team); }
+    .card-team .icon { background: var(--team-bg); color: var(--team); }
+    .card-team h3 { color: var(--team); }
+
+    .card-hook::before { background: var(--hook); }
+    .card-hook .icon { background: var(--hook-bg); color: var(--hook); }
+    .card-hook h3 { color: var(--hook); }
+
+    .card-plugin::before { background: var(--plugin); }
+    .card-plugin .icon { background: var(--plugin-bg); color: var(--plugin); }
+    .card-plugin h3 { color: var(--plugin); }
+
+    .card-memory::before { background: var(--memory); }
+    .card-memory .icon { background: var(--memory-bg); color: var(--memory); }
+    .card-memory h3 { color: var(--memory); }
+
+    /* ===== DETAIL BLOCKS ===== */
+    .detail-block {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg-card);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+    .detail-header {
+      padding: 24px 28px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-header .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .detail-header h3 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .detail-body {
+      padding: 24px 28px;
+    }
+    .detail-body p {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+
+    .detail-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 700px) { .detail-cols { grid-template-columns: 1fr; } }
+
+    .detail-col h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      color: var(--text-dim);
+    }
+    .detail-col ul {
+      list-style: none;
+      font-size: 13px;
+    }
+    .detail-col li {
+      padding: 5px 0;
+      padding-left: 16px;
+      position: relative;
+      color: var(--text-dim);
+    }
+    .detail-col li::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 12px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+    }
+    .detail-col li strong { color: var(--text); }
+
+    /* ===== COMPARISON TABLE ===== */
+    .comp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .comp-table th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: left;
+      padding: 12px 16px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+      position: sticky;
+      top: 50px;
+    }
+    .comp-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .comp-table td:first-child {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .comp-table tr:last-child td { border-bottom: none; }
+    .comp-table .dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    /* ===== DIAGRAM (ASCII-style) ===== */
+    .diagram {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      background: #1a1a2e;
+      border: 1px solid #2a2a3e;
+      border-radius: 12px;
+      padding: 28px 32px;
+      overflow-x: auto;
+      white-space: pre;
+      color: #c8c8d8;
+    }
+    .diagram .c-skill { color: #f472b6; }
+    .diagram .c-tool { color: #60a5fa; }
+    .diagram .c-agent { color: #a78bfa; }
+    .diagram .c-mcp { color: #34d399; }
+    .diagram .c-team { color: #fbbf24; }
+    .diagram .c-hook { color: #fb923c; }
+    .diagram .c-plugin { color: #f87171; }
+    .diagram .c-memory { color: #22d3ee; }
+    .diagram .c-dim { color: #6a6a7e; }
+    .diagram .c-bright { color: #e8e8f0; }
+
+    /* ===== SCENARIO ===== */
+    .detail-block { box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+
+    .scenario-header {
+      background: linear-gradient(135deg, rgba(112,72,232,0.06) 0%, rgba(12,166,120,0.04) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    .scenario-header h3 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .scenario-header p {
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 11px; top: 0; bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .tl-item {
+      position: relative;
+      margin-bottom: 28px;
+    }
+    .tl-item::before {
+      content: '';
+      position: absolute;
+      left: -32px; top: 6px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--bg-card);
+    }
+    .tl-item .tl-phase {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .tl-item h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .tl-item p {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .tl-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tl-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid;
+    }
+    .tl-tag-skill { color: var(--skill); border-color: rgba(244,114,182,0.3); background: var(--skill-bg); }
+    .tl-tag-tool { color: var(--tool); border-color: rgba(96,165,250,0.3); background: var(--tool-bg); }
+    .tl-tag-agent { color: var(--agent); border-color: rgba(167,139,250,0.3); background: var(--agent-bg); }
+    .tl-tag-mcp { color: var(--mcp); border-color: rgba(52,211,153,0.3); background: var(--mcp-bg); }
+    .tl-tag-team { color: var(--team); border-color: rgba(251,191,36,0.3); background: var(--team-bg); }
+    .tl-tag-hook { color: var(--hook); border-color: rgba(251,146,60,0.3); background: var(--hook-bg); }
+    .tl-tag-memory { color: var(--memory); border-color: rgba(34,211,238,0.3); background: var(--memory-bg); }
+    .tl-tag-plugin { color: var(--plugin); border-color: rgba(248,113,113,0.3); background: var(--plugin-bg); }
+
+    /* ===== CODE BLOCK ===== */
+    .code-block {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      background: #1a1a2e;
+      border: 1px solid #2a2a3e;
+      border-radius: 8px;
+      padding: 16px 20px;
+      overflow-x: auto;
+      margin: 12px 0;
+      color: #c8c8d8;
+    }
+
+    /* ===== KEY INSIGHT ===== */
+    .insight {
+      border-left: 3px solid;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-radius: 0 8px 8px 0;
+      background: var(--bg-elevated);
+    }
+    .insight p {
+      font-size: 14px;
+      color: var(--text);
+    }
+    .insight-skill { border-color: var(--skill); }
+    .insight-agent { border-color: var(--agent); }
+    .insight-mcp { border-color: var(--mcp); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      padding: 40px 48px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ===== LEGEND ===== */
+    .legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-dim);
+    }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<header>
+  <h1>Claude Code <em>Concepts</em> Atlas</h1>
+  <p class="subtitle">
+    Skill, Tool, Agent, MCP, Team, Hook, Plugin, Memory &mdash;
+    Claude Code를 구성하는 8가지 핵심 개념의 정의, 관계, 그리고 실전 활용법
+  </p>
+  <div class="meta">
+    <span>Claude Code CLI</span>
+    <span>2026-03-28</span>
+    <span>8 Concepts Covered</span>
+  </div>
+</header>
+
+<!-- ==================== NAV ==================== -->
+<nav>
+  <a href="#overview">개요</a>
+  <a href="#details">개념 상세</a>
+  <a href="#compare">비교표</a>
+  <a href="#relations">관계도</a>
+  <a href="#scenario">실전 시나리오</a>
+  <a href="#faq">FAQ</a>
+</nav>
+
+<!-- ==================== 1. OVERVIEW ==================== -->
+<section id="overview">
+  <div class="container">
+    <div class="section-label" style="color:var(--agent)">01</div>
+    <h2 class="section-title">8가지 핵심 개념 한눈에 보기</h2>
+    <p class="section-desc">
+      Claude Code 생태계를 구성하는 개념들이다. 각각은 명확한 역할이 있지만, 실제 프로젝트에서는 서로 엮여서 동작한다.
+    </p>
+
+    <div class="concepts-grid">
+      <div class="concept-card card-skill">
+        <div class="icon">S</div>
+        <h3>Skill</h3>
+        <div class="def">Claude의 행동 방식을 바꾸는 지시 문서. 프롬프트에 주입되어 메인 Claude가 직접 따른다.</div>
+        <div class="analogy">비유: 업무 매뉴얼 / SOP</div>
+      </div>
+
+      <div class="concept-card card-tool">
+        <div class="icon">T</div>
+        <h3>Tool</h3>
+        <div class="def">파일 읽기, 편집, 검색, 명령 실행 등 Claude가 수행할 수 있는 원자적 행동 단위.</div>
+        <div class="analogy">비유: 손에 쥔 도구 (망치, 드라이버)</div>
+      </div>
+
+      <div class="concept-card card-agent">
+        <div class="icon">A</div>
+        <h3>Agent</h3>
+        <div class="def">별도 컨텍스트에서 독립 실행되는 Claude 인스턴스. 작업을 위임받아 자율적으로 수행한다.</div>
+        <div class="analogy">비유: 일을 맡길 수 있는 팀원</div>
+      </div>
+
+      <div class="concept-card card-mcp">
+        <div class="icon">M</div>
+        <h3>MCP</h3>
+        <div class="def">외부 서비스(DB, API, Slack 등)를 연결하는 프로토콜. 외부 세계와의 인터페이스.</div>
+        <div class="analogy">비유: USB 허브 / API 게이트웨이</div>
+      </div>
+
+      <div class="concept-card card-team">
+        <div class="icon">Tm</div>
+        <h3>Team</h3>
+        <div class="def">여러 Agent가 태스크 리스트를 공유하며 협업하는 조직 단위. 메시지로 소통한다.</div>
+        <div class="analogy">비유: 프로젝트 팀 / 스크럼 보드</div>
+      </div>
+
+      <div class="concept-card card-hook">
+        <div class="icon">H</div>
+        <h3>Hook</h3>
+        <div class="def">특정 이벤트(파일 저장, 세션 시작 등)에 자동으로 실행되는 명령. 강제 자동화.</div>
+        <div class="analogy">비유: Git Hook / CI 파이프라인</div>
+      </div>
+
+      <div class="concept-card card-plugin">
+        <div class="icon">P</div>
+        <h3>Plugin</h3>
+        <div class="def">Skill + Agent + Hook + MCP를 묶어 배포하는 패키지. 설치 한 번으로 워크플로우 확장.</div>
+        <div class="analogy">비유: VS Code Extension / npm 패키지</div>
+      </div>
+
+      <div class="concept-card card-memory">
+        <div class="icon">Me</div>
+        <h3>Memory</h3>
+        <div class="def">대화 간 유지되는 영속 컨텍스트. 사용자 선호, 프로젝트 결정, 피드백을 기억한다.</div>
+        <div class="analogy">비유: 팀 위키 / 회의록</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 2. DETAILS ==================== -->
+<section id="details">
+  <div class="container">
+    <div class="section-label" style="color:var(--skill)">02</div>
+    <h2 class="section-title">개념별 상세</h2>
+    <p class="section-desc">
+      각 개념의 정의, 작동 방식, 파일 구조, 사용 시점을 정리한다.
+    </p>
+
+    <!-- SKILL -->
+    <div class="detail-block">
+      <div class="detail-header">
+        <span class="badge" style="background:var(--skill-bg);color:var(--skill)">SKILL</span>
+        <h3>행동 지침 문서</h3>
+      </div>
+      <div class="detail-body">
+        <p>
+          Skill은 Claude의 <strong>행동 방식을 정의하는 마크다운 문서</strong>다. 프롬프트에 주입되어 메인 Claude가 직접 따른다.
+          코드가 아니라 <em>지시문</em>이다. "이런 상황에서 이렇게 일해라"는 매뉴얼에 해당한다.
+        </p>
+        <div class="detail-cols">
+          <div class="detail-col">
+            <h4>파일 구조</h4>
+            <ul>
+              <li><strong>SKILL.md</strong> &mdash; 스킬 본체 (YAML frontmatter + 마크다운)</li>
+              <li><strong>supporting files</strong> &mdash; 참조 문서, 스크립트, 예시</li>
+              <li>위치: <strong>plugin/skills/skill-name/</strong></li>
+            </ul>
+          </div>
+          <div class="detail-col">
+            <h4>트리거 방식</h4>
+            <ul>
+              <li><strong>자동 트리거</strong> &mdash; Claude가 상황 판단하여 호출</li>
+              <li><strong>슬래시 명령</strong> &mdash; 사용자가 /skill-name으로 호출</li>
+              <li><strong>다른 스킬에서 호출</strong> &mdash; 스킬 체이닝</li>
+            </ul>
+          </div>
+        </div>
+        <div class="code-block"># SKILL.md frontmatter 예시
+---
+name: brainstorming
+description: "Use when creating features or modifying behavior..."
+---
+## 동작 규칙
+1. 명확화 질문을 한 번에 하나씩...
+2. 설계 승인 없이 구현 불가 (Hard Gate)</div>
+        <div class="insight insight-skill">
+          <p><strong>핵심:</strong> Skill은 실행되는 코드가 아니라, Claude의 사고방식과 절차를 제어하는 지침이다. 메인 Claude 자체가 실행 주체.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOOL -->
+    <div class="detail-block">
+      <div class="detail-header">
+        <span class="badge" style="background:var(--tool-bg);color:var(--tool)">TOOL</span>
+        <h3>원자적 행동 단위</h3>
+      </div>
+      <div class="detail-body">
+        <p>
+          Tool은 Claude가 <strong>실제로 무언가를 수행</strong>할 때 사용하는 함수다.
+          파일을 읽고, 편집하고, 검색하고, 명령을 실행하는 등의 구체적 행동이다.
+        </p>
+        <div class="detail-cols">
+          <div class="detail-col">
+            <h4>내장 Tool (항상 사용 가능)</h4>
+            <ul>
+              <li><strong>Read</strong> &mdash; 파일 읽기 (이미지, PDF 포함)</li>
+              <li><strong>Write</strong> &mdash; 파일 생성</li>
+              <li><strong>Edit</strong> &mdash; 파일 수정 (diff 기반)</li>
+              <li><strong>Glob</strong> &mdash; 파일 패턴 검색</li>
+              <li><strong>Grep</strong> &mdash; 코드 내용 검색 (ripgrep)</li>
+              <li><strong>Bash</strong> &mdash; 셸 명령 실행</li>
+              <li><strong>Agent</strong> &mdash; 서브에이전트 생성</li>
+              <li><strong>Skill</strong> &mdash; 스킬 호출</li>
+            </ul>
+          </div>
+          <div class="detail-col">
+            <h4>MCP Tool (외부 서비스 연동)</h4>
+            <ul>
+              <li><strong>mcp__ide__*</strong> &mdash; IDE 연동</li>
+              <li><strong>mcp__context7__*</strong> &mdash; 라이브러리 문서 조회</li>
+              <li><strong>mcp__slack__*</strong> &mdash; Slack 메시지 (설치 시)</li>
+              <li><strong>mcp__github__*</strong> &mdash; GitHub API (설치 시)</li>
+              <li>... <em>.mcp.json에서 구성</em></li>
+            </ul>
+          </div>
+        </div>
+        <div class="insight" style="border-color:var(--tool)">
+          <p><strong>핵심:</strong> Tool = 실제 행동. Skill은 "어떻게 행동할지"를 알려주고, Tool은 그 행동을 실행한다.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENT -->
+    <div class="detail-block">
+      <div class="detail-header">
+        <span class="badge" style="background:var(--agent-bg);color:var(--agent)">AGENT</span>
+        <h3>독립 실행 Claude 인스턴스</h3>
+      </div>
+      <div class="detail-body">
+        <p>
+          Agent는 <strong>별도의 컨텍스트 윈도우</strong>에서 실행되는 독립 Claude 인스턴스다.
+          메인 Claude와 대화 기록을 공유하지 않으며, 주어진 태스크만 집중적으로 처리한다.
+        </p>
+        <div class="detail-cols">
+          <div class="detail-col">
+            <h4>왜 분리하는가?</h4>
+            <ul>
+              <li><strong>격리</strong> &mdash; 구현자 ≠ 리뷰어 (편향 방지)</li>
+              <li><strong>컨텍스트 절약</strong> &mdash; 대량 diff 분석을 서브에이전트가 처리</li>
+              <li><strong>병렬성</strong> &mdash; 독립 태스크를 동시 실행</li>
+              <li><strong>집중</strong> &mdash; 필요한 컨텍스트만 제공 → 정확도 향상</li>
+            </ul>
+          </div>
+          <div class="detail-col">
+            <h4>에이전트 유형</h4>
+            <ul>
+              <li><strong>Explore</strong> &mdash; 읽기 전용 (Read, Grep, Glob)</li>
+              <li><strong>Plan</strong> &mdash; 설계 전용 (읽기 + 계획)</li>
+              <li><strong>general-purpose</strong> &mdash; 전체 Tool 접근</li>
+              <li><strong>커스텀</strong> &mdash; agents/*.md로 정의</li>
+            </ul>
+          </div>
+        </div>
+        <div class="code-block"># agents/code-reviewer.md
+---
+name: code-reviewer
+description: "Use after major project steps..."
+model: inherit
+---
+## Role
+시니어 코드 리뷰어로서 계획 정합성, 코드 품질, 아키텍처를 검토한다.
+이슈를 Critical / Important / Suggestion으로 분류한다.</div>
+        <div class="insight insight-agent">
+          <p><strong>Skill vs Agent 핵심 차이:</strong> Skill = "메인 Claude야, 이 규칙을 따라" / Agent = "새 Claude를 띄워서 이 일을 맡겨". Skill은 자기 행동 제어, Agent는 작업 위임.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MCP -->
+    <div class="detail-block">
+      <div class="detail-header">
+        <span class="badge" style="background:var(--mcp-bg);color:var(--mcp)">MCP</span>
+        <h3>외부 서비스 연결 프로토콜</h3>
+      </div>
+      <div class="detail-body">
+        <p>
+          MCP(Model Context Protocol)는 Claude가 <strong>외부 세계</strong>와 통신하는 표준 프로토콜이다.
+          DB 쿼리, API 호출, Slack 메시지 전송 등을 가능하게 한다. 내장 Tool이 "로컬 파일 시스템"을 다룬다면, MCP는 "외부 서비스"를 다룬다.
+        </p>
+        <div class="detail-cols">
+          <div class="detail-col">
+            <h4>서버 유형</h4>
+            <ul>
+              <li><strong>Stdio</strong> &mdash; 로컬 프로세스 (가장 일반적)</li>
+              <li><strong>SSE</strong> &mdash; 클라우드 서비스 (OAuth 지원)</li>
+              <li><strong>HTTP</strong> &mdash; REST API 연동</li>
+              <li><strong>WebSocket</strong> &mdash; 실시간 양방향</li>
+            </ul>
+          </div>
+          <div class="detail-col">
+            <h4>대표 MCP 서버</h4>
+            <ul>
+              <li><strong>context7</strong> &mdash; 라이브러리 최신 문서</li>
+              <li><strong>Supabase</strong> &mdash; DB + Auth + Storage</li>
+              <li><strong>GitHub</strong> &mdash; 이슈, PR, 워크플로우</li>
+              <li><strong>Slack</strong> &mdash; 메시지 송수신</li>
+              <li><strong>Sentry</strong> &mdash; 에러 트래킹</li>
+              <li><strong>Playwright</strong> &mdash; 브라우저 자동화</li>
+            </ul>
+          </div>
+        </div>
+        <div class="code-block">// .mcp.json (프로젝트 루트에 위치)
+{
+  "context7": {
+    "command": "npx",
+    "args": ["-y", "@upstash/context7-mcp"]
+  },
+  "supabase": {
+    "command": "npx",
+    "args": ["supabase-mcp", "--project-id", "xxx"]
+  }
+}</div>
+        <div class="insight insight-mcp">
+          <p><strong>핵심:</strong> 내장 Tool = 로컬 파일 시스템, MCP Tool = 외부 서비스. MCP는 .mcp.json에 등록하면 Claude가 <code>mcp__서버명__도구명</code>으로 호출 가능.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEAM -->
+    <div class="detail-block">
+      <div class="detail-header">
+        <span class="badge" style="background:var(--team-bg);color:var(--team)">TEAM</span>
+        <h3>에이전트 협업 조직</h3>
+      </div>
+      <div class="detail-body">
+        <p>
+          Team은 <strong>여러 Agent를 하나의 조직으로 묶어 협업</strong>시키는 구조다.
+          공유 태스크 리스트로 작업을 조율하고, SendMessage로 소통한다.
+          단순 병렬 실행(dispatching-parallel-agents)과 달리 상태 공유와 의존성 관리가 가능하다.
+        </p>
+        <div class="detail-cols">
+          <div class="detail-col">
+            <h4>구성 요소</h4>
+            <ul>
+              <li><strong>config.json</strong> &mdash; 팀 멤버 정의</li>
+              <li><strong>Task List</strong> &mdash; 공유 작업 목록 (pending → in_progress → completed)</li>
+              <li><strong>SendMessage</strong> &mdash; 에이전트 간 메시지</li>
+              <li><strong>blockedBy / blocks</strong> &mdash; 태스크 의존성</li>
+            </ul>
+          </div>
+          <div class="detail-col">
+            <h4>Agent와의 차이</h4>
+            <ul>
+              <li><strong>Agent</strong> &mdash; 단일 작업 위임 (일회성)</li>
+              <li><strong>Team</strong> &mdash; 다중 Agent 조율 (지속적)</li>
+              <li>Team은 태스크 큐 + 메시지 시스템을 제공</li>
+              <li>Agent는 결과만 반환하고 종료</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOOK -->
+    <div class="detail-block">
+      <div class="detail-header">
+        <span class="badge" style="background:var(--hook-bg);color:var(--hook)">HOOK</span>
+        <h3>이벤트 기반 자동 실행</h3>
+      </div>
+      <div class="detail-body">
+        <p>
+          Hook은 <strong>특정 이벤트에 자동으로 트리거되는 명령</strong>이다.
+          Skill이 "이렇게 해라"는 안내라면, Hook은 "무조건 실행되는 자동화"다. 선택이 아니라 강제.
+        </p>
+        <div class="detail-cols">
+          <div class="detail-col">
+            <h4>이벤트 종류</h4>
+            <ul>
+              <li><strong>SessionStart</strong> &mdash; 세션 시작/초기화</li>
+              <li><strong>PreToolUse</strong> &mdash; Tool 실행 전 (차단 가능)</li>
+              <li><strong>PostToolUse</strong> &mdash; Tool 실행 후</li>
+              <li><strong>UserPromptSubmit</strong> &mdash; 사용자 입력 전처리</li>
+              <li><strong>Stop</strong> &mdash; Claude 응답 종료</li>
+              <li><strong>Notification</strong> &mdash; 알림 발생</li>
+            </ul>
+          </div>
+          <div class="detail-col">
+            <h4>실전 패턴</h4>
+            <ul>
+              <li><strong>PostToolUse + Edit</strong> → 자동 포맷팅 (Prettier)</li>
+              <li><strong>PostToolUse + Write</strong> → 자동 린팅 (ESLint)</li>
+              <li><strong>PreToolUse + Bash</strong> → 위험 명령 차단</li>
+              <li><strong>SessionStart</strong> → 스킬 시스템 초기화</li>
+              <li><strong>Notification</strong> → 데스크탑 알림/소리</li>
+            </ul>
+          </div>
+        </div>
+        <div class="code-block">// settings.json (hooks 섹션)
+"hooks": {
+  "PostToolUse": [{
+    "matcher": "Edit|Write",
+    "hooks": [{
+      "type": "command",
+      "command": "npx prettier --write $CLAUDE_FILE_PATH"
+    }]
+  }]
+}</div>
+      </div>
+    </div>
+
+    <!-- PLUGIN -->
+    <div class="detail-block">
+      <div class="detail-header">
+        <span class="badge" style="background:var(--plugin-bg);color:var(--plugin)">PLUGIN</span>
+        <h3>확장 패키지</h3>
+      </div>
+      <div class="detail-body">
+        <p>
+          Plugin은 <strong>Skill + Agent + Hook + MCP를 하나로 묶은 배포 단위</strong>다.
+          마켓플레이스에서 설치하면 내부 구성요소가 자동으로 등록된다.
+          VS Code Extension이나 npm 패키지와 같은 개념.
+        </p>
+        <div class="detail-cols">
+          <div class="detail-col">
+            <h4>포함 가능한 구성요소</h4>
+            <ul>
+              <li><strong>skills/*/SKILL.md</strong> &mdash; 스킬들</li>
+              <li><strong>agents/*.md</strong> &mdash; 커스텀 에이전트</li>
+              <li><strong>hooks/hooks.json</strong> &mdash; 자동화 훅</li>
+              <li><strong>.mcp.json</strong> &mdash; MCP 서버 설정</li>
+              <li><strong>package.json</strong> &mdash; 메타데이터</li>
+            </ul>
+          </div>
+          <div class="detail-col">
+            <h4>관리 명령어</h4>
+            <ul>
+              <li><strong>/plugin install</strong> name@marketplace</li>
+              <li><strong>/plugin update</strong> name</li>
+              <li><strong>/plugin list</strong></li>
+              <li><strong>/plugin info</strong> name</li>
+            </ul>
+          </div>
+        </div>
+        <div class="code-block">my-plugin/
+├── skills/
+│   ├── brainstorming/SKILL.md
+│   └── debugging/SKILL.md
+├── agents/
+│   └── code-reviewer.md
+├── hooks/
+│   └── hooks.json
+├── .mcp.json
+└── package.json</div>
+      </div>
+    </div>
+
+    <!-- MEMORY -->
+    <div class="detail-block">
+      <div class="detail-header">
+        <span class="badge" style="background:var(--memory-bg);color:var(--memory)">MEMORY</span>
+        <h3>영속 컨텍스트</h3>
+      </div>
+      <div class="detail-body">
+        <p>
+          Memory는 <strong>대화가 끝나도 유지되는 기억 시스템</strong>이다.
+          사용자 프로필, 프로젝트 결정 사항, 피드백 등을 파일로 저장하여 다음 대화에서도 참조한다.
+        </p>
+        <div class="detail-cols">
+          <div class="detail-col">
+            <h4>메모리 유형</h4>
+            <ul>
+              <li><strong>user</strong> &mdash; 사용자 역할, 선호, 지식 수준</li>
+              <li><strong>feedback</strong> &mdash; "이렇게 해라/하지마라" 피드백</li>
+              <li><strong>project</strong> &mdash; 진행 중인 작업, 의사결정</li>
+              <li><strong>reference</strong> &mdash; 외부 리소스 위치 포인터</li>
+            </ul>
+          </div>
+          <div class="detail-col">
+            <h4>파일 구조</h4>
+            <ul>
+              <li><strong>MEMORY.md</strong> &mdash; 인덱스 파일 (항상 로드)</li>
+              <li><strong>개별 .md 파일</strong> &mdash; 각 메모리 항목</li>
+              <li>YAML frontmatter (name, description, type)</li>
+              <li>위치: <strong>~/.claude/projects/{path}/memory/</strong></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 3. COMPARISON ==================== -->
+<section id="compare">
+  <div class="container">
+    <div class="section-label" style="color:var(--mcp)">03</div>
+    <h2 class="section-title">비교표: 공통점과 차이점</h2>
+    <p class="section-desc">
+      8가지 개념을 7개 축으로 비교한다.
+    </p>
+
+    <div style="overflow-x:auto; border:1px solid var(--border); border-radius:12px;">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th>개념</th>
+            <th>본질</th>
+            <th>실행 주체</th>
+            <th>컨텍스트</th>
+            <th>영속성</th>
+            <th>수동/자동</th>
+            <th>정의 위치</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="dot" style="background:var(--skill)"></span>Skill</td>
+            <td>지침 문서</td>
+            <td>메인 Claude</td>
+            <td>현재 대화에 주입</td>
+            <td>플러그인과 함께</td>
+            <td>자동 + 수동</td>
+            <td>skills/*/SKILL.md</td>
+          </tr>
+          <tr>
+            <td><span class="dot" style="background:var(--tool)"></span>Tool</td>
+            <td>함수 호출</td>
+            <td>시스템 (Claude 요청)</td>
+            <td>현재 대화</td>
+            <td>내장 (항상 존재)</td>
+            <td>Claude가 호출</td>
+            <td>시스템 내장 / MCP</td>
+          </tr>
+          <tr>
+            <td><span class="dot" style="background:var(--agent)"></span>Agent</td>
+            <td>독립 인스턴스</td>
+            <td>별도 Claude</td>
+            <td>격리된 별도 컨텍스트</td>
+            <td>태스크 종료 시 소멸</td>
+            <td>Claude/Skill이 생성</td>
+            <td>agents/*.md</td>
+          </tr>
+          <tr>
+            <td><span class="dot" style="background:var(--mcp)"></span>MCP</td>
+            <td>외부 연결</td>
+            <td>MCP 서버 프로세스</td>
+            <td>프로젝트/글로벌</td>
+            <td>설정 파일에 영속</td>
+            <td>Claude가 호출</td>
+            <td>.mcp.json</td>
+          </tr>
+          <tr>
+            <td><span class="dot" style="background:var(--team)"></span>Team</td>
+            <td>조직 구조</td>
+            <td>다중 Agent</td>
+            <td>공유 태스크 리스트</td>
+            <td>세션 중 유지</td>
+            <td>Claude가 생성</td>
+            <td>런타임 생성</td>
+          </tr>
+          <tr>
+            <td><span class="dot" style="background:var(--hook)"></span>Hook</td>
+            <td>이벤트 핸들러</td>
+            <td>셸 / LLM</td>
+            <td>이벤트 데이터</td>
+            <td>설정 파일에 영속</td>
+            <td>자동 (이벤트 기반)</td>
+            <td>settings.json / hooks.json</td>
+          </tr>
+          <tr>
+            <td><span class="dot" style="background:var(--plugin)"></span>Plugin</td>
+            <td>패키지 번들</td>
+            <td>해당 없음 (컨테이너)</td>
+            <td>해당 없음</td>
+            <td>설치 시 영속</td>
+            <td>수동 설치</td>
+            <td>마켓플레이스</td>
+          </tr>
+          <tr>
+            <td><span class="dot" style="background:var(--memory)"></span>Memory</td>
+            <td>영속 기억</td>
+            <td>메인 Claude (읽기/쓰기)</td>
+            <td>모든 대화에 로드</td>
+            <td>파일로 영속</td>
+            <td>자동 + 수동</td>
+            <td>~/.claude/projects/*/memory/</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="insight" style="border-color:var(--text-dim); margin-top:28px;">
+      <p>
+        <strong>공통점:</strong> 8개 개념 모두 "Claude의 능력을 확장"한다는 목적은 같다.
+        차이는 <strong>확장 방식</strong>이다 &mdash; 행동 지침(Skill), 행동 수단(Tool), 작업 위임(Agent),
+        외부 연결(MCP), 협업 구조(Team), 자동화(Hook), 패키징(Plugin), 기억(Memory).
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 4. RELATIONS ==================== -->
+<section id="relations">
+  <div class="container">
+    <div class="section-label" style="color:var(--plugin)">04</div>
+    <h2 class="section-title">개념 간 관계도</h2>
+    <p class="section-desc">
+      어떤 개념이 어떤 개념을 포함하고, 호출하고, 의존하는지를 보여준다.
+    </p>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--skill)"></div>Skill</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--tool)"></div>Tool</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--agent)"></div>Agent</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--mcp)"></div>MCP</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--team)"></div>Team</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--hook)"></div>Hook</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--plugin)"></div>Plugin</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--memory)"></div>Memory</div>
+    </div>
+
+    <div class="diagram">
+<span class="c-plugin">PLUGIN</span> <span class="c-dim">(배포 패키지 &mdash; 모든 구성요소를 묶는 컨테이너)</span>
+<span class="c-dim">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="c-dim">│</span>                                                                 <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-skill">SKILL</span> <span class="c-dim">(행동 지침)</span>                                            <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">│</span>                                                            <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">├──</span> <span class="c-bright">참조:</span> <span class="c-tool">Tool</span> <span class="c-dim">(어떤 도구를 언제 쓸지 지시)</span>                  <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">├──</span> <span class="c-bright">호출:</span> <span class="c-agent">Agent</span> <span class="c-dim">(서브에이전트에 작업 위임)</span>                  <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">├──</span> <span class="c-bright">체이닝:</span> <span class="c-skill">다른 Skill</span> <span class="c-dim">(brainstorming → writing-plans)</span>  <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">└──</span> <span class="c-bright">읽기:</span> <span class="c-memory">Memory</span> <span class="c-dim">(과거 컨텍스트 참조)</span>                    <span class="c-dim">│</span>
+<span class="c-dim">│</span>                                                                 <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-agent">AGENT</span> <span class="c-dim">(독립 인스턴스)</span>                                        <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">│</span>                                                            <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">├──</span> <span class="c-bright">사용:</span> <span class="c-tool">Tool</span> <span class="c-dim">(Read, Write, Edit, Bash...)</span>               <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">├──</span> <span class="c-bright">사용:</span> <span class="c-mcp">MCP Tool</span> <span class="c-dim">(외부 서비스 호출)</span>                    <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">├──</span> <span class="c-bright">생성:</span> <span class="c-agent">Sub-Agent</span> <span class="c-dim">(중첩 위임)</span>                       <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">└──</span> <span class="c-bright">읽기:</span> <span class="c-memory">Memory</span>                                          <span class="c-dim">│</span>
+<span class="c-dim">│</span>                                                                 <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-hook">HOOK</span> <span class="c-dim">(이벤트 자동화)</span>                                         <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">│</span>                                                            <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">├──</span> <span class="c-bright">감시:</span> <span class="c-tool">Tool 실행</span> <span class="c-dim">(PreToolUse / PostToolUse)</span>         <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-dim">└──</span> <span class="c-bright">실행:</span> <span class="c-dim">셸 명령 또는 LLM 판단</span>                             <span class="c-dim">│</span>
+<span class="c-dim">│</span>                                                                 <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-mcp">MCP</span> <span class="c-dim">(외부 서비스 설정)</span>                                       <span class="c-dim">│</span>
+<span class="c-dim">│</span>                                                                 <span class="c-dim">│</span>
+<span class="c-dim">└─────────────────────────────────────────────────────────────────┘</span>
+
+<span class="c-team">TEAM</span> <span class="c-dim">(런타임에 생성되는 협업 구조)</span>
+<span class="c-dim">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="c-dim">│</span>                                                                 <span class="c-dim">│</span>
+<span class="c-dim">│</span>   <span class="c-agent">Agent A</span> <span class="c-dim">──── SendMessage ────</span> <span class="c-agent">Agent B</span>                      <span class="c-dim">│</span>
+<span class="c-dim">│</span>       <span class="c-dim">│                                │</span>                      <span class="c-dim">│</span>
+<span class="c-dim">│</span>       <span class="c-dim">└──────── 공유 ────────────────┘</span>                      <span class="c-dim">│</span>
+<span class="c-dim">│</span>                    <span class="c-dim">│</span>                                          <span class="c-dim">│</span>
+<span class="c-dim">│</span>              <span class="c-team">Task List</span>                                        <span class="c-dim">│</span>
+<span class="c-dim">│</span>         <span class="c-dim">(pending → in_progress → completed)</span>                    <span class="c-dim">│</span>
+<span class="c-dim">│</span>                                                                 <span class="c-dim">│</span>
+<span class="c-dim">└─────────────────────────────────────────────────────────────────┘</span>
+
+<span class="c-memory">MEMORY</span> <span class="c-dim">(대화 간 영속 &mdash; 모든 세션에서 자동 로드)</span>
+<span class="c-dim">┌─────────────────────────────────────────────────────────────────┐</span>
+<span class="c-dim">│</span>  <span class="c-memory">MEMORY.md</span> <span class="c-dim">(인덱스)</span>                                           <span class="c-dim">│</span>
+<span class="c-dim">│</span>  <span class="c-dim">├──</span> user_role.md                                              <span class="c-dim">│</span>
+<span class="c-dim">│</span>  <span class="c-dim">├──</span> feedback_testing.md                                        <span class="c-dim">│</span>
+<span class="c-dim">│</span>  <span class="c-dim">├──</span> project_auth_rewrite.md                                    <span class="c-dim">│</span>
+<span class="c-dim">│</span>  <span class="c-dim">└──</span> reference_linear.md                                        <span class="c-dim">│</span>
+<span class="c-dim">│</span>                                                                 <span class="c-dim">│</span>
+<span class="c-dim">│</span>  <span class="c-dim">← 메인 Claude, Agent 모두 읽기/쓰기 가능</span>                       <span class="c-dim">│</span>
+<span class="c-dim">└─────────────────────────────────────────────────────────────────┘</span></div>
+  </div>
+</section>
+
+<!-- ==================== 5. SCENARIO ==================== -->
+<section id="scenario">
+  <div class="container">
+    <div class="section-label" style="color:var(--team)">05</div>
+    <h2 class="section-title">실전 시나리오</h2>
+
+    <div class="scenario-header">
+      <h3>SaaS 분석 대시보드 팀 개발</h3>
+      <p>
+        3인 팀이 SaaS 분석 대시보드를 개발한다. Next.js + Supabase 스택.
+        사용자 인증, 실시간 차트, 알림 시스템을 구축해야 한다.
+        이 프로젝트에서 8가지 개념이 어떻게 협력하는지 단계별로 추적한다.
+      </p>
+    </div>
+
+    <div class="timeline">
+
+      <!-- Phase 0 -->
+      <div class="tl-item">
+        <div class="tl-phase" style="color:var(--plugin)">Phase 0 &mdash; 환경 셋업</div>
+        <h4>Plugin 설치 + MCP 구성 + Memory 초기화</h4>
+        <p>
+          <strong>superpowers</strong> 플러그인 설치 → 14개 스킬, code-reviewer 에이전트, 세션 훅 일괄 등록.<br>
+          <strong>.mcp.json</strong>에 Supabase(DB), GitHub(PR/이슈), Slack(팀 알림), Sentry(에러 트래킹) MCP 서버 등록.<br>
+          <strong>Memory</strong>에 팀 구성, 기술 스택 결정, 코딩 컨벤션 저장.
+        </p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag-plugin">Plugin 설치</span>
+          <span class="tl-tag tl-tag-mcp">MCP 구성</span>
+          <span class="tl-tag tl-tag-memory">Memory 초기화</span>
+          <span class="tl-tag tl-tag-hook">SessionStart Hook 활성화</span>
+        </div>
+      </div>
+
+      <!-- Phase 1 -->
+      <div class="tl-item">
+        <div class="tl-phase" style="color:var(--skill)">Phase 1 &mdash; 설계</div>
+        <h4>"인증 시스템 + 대시보드 레이아웃을 만들자"</h4>
+        <p>
+          사용자 요청 → <strong>using-superpowers</strong> 스킬이 자동 판단 → <strong>brainstorming</strong> 스킬 트리거.<br>
+          명확화 질문 (OAuth vs 이메일? RBAC 필요?) → 2~3개 접근법 제안 → 설계 문서 작성.<br>
+          MCP로 <strong>Supabase 스키마</strong>를 조회하여 기존 테이블 구조 파악.<br>
+          Memory에서 이전 대화의 기술 스택 결정 사항 참조.
+        </p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag-skill">brainstorming</span>
+          <span class="tl-tag tl-tag-skill">using-superpowers</span>
+          <span class="tl-tag tl-tag-mcp">Supabase 스키마 조회</span>
+          <span class="tl-tag tl-tag-memory">기술 스택 참조</span>
+          <span class="tl-tag tl-tag-tool">Read, Grep (기존 코드 탐색)</span>
+        </div>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="tl-item">
+        <div class="tl-phase" style="color:var(--skill)">Phase 2 &mdash; 계획</div>
+        <h4>구현 계획서 작성</h4>
+        <p>
+          설계 승인 → <strong>writing-plans</strong> 스킬 자동 트리거.<br>
+          파일 구조 매핑 → 2~5분 단위 태스크 18개로 분할.<br>
+          각 태스크에 정확한 파일 경로, 완전한 코드, 테스트 명령, 예상 결과 포함.<br>
+          <strong>using-git-worktrees</strong> 스킬로 격리된 작업 브랜치 생성.
+        </p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag-skill">writing-plans</span>
+          <span class="tl-tag tl-tag-skill">using-git-worktrees</span>
+          <span class="tl-tag tl-tag-tool">Write (계획서 저장)</span>
+          <span class="tl-tag tl-tag-tool">Bash (git worktree add)</span>
+        </div>
+      </div>
+
+      <!-- Phase 3 -->
+      <div class="tl-item">
+        <div class="tl-phase" style="color:var(--agent)">Phase 3 &mdash; 구현</div>
+        <h4>서브에이전트 기반 병렬 개발</h4>
+        <p>
+          <strong>subagent-driven-development</strong> 스킬이 태스크별로 구현자(implementer) 에이전트를 디스패치.<br>
+          각 에이전트는 <strong>test-driven-development</strong> 스킬에 따라 RED-GREEN-REFACTOR 사이클 수행.<br>
+          태스크 완료마다 <strong>2단계 리뷰</strong>: 스펙 준수 리뷰어 → 코드 품질 리뷰어 (code-reviewer 에이전트).<br>
+          <strong>Hook</strong>이 매 Edit/Write 후 자동으로 Prettier + ESLint 실행.<br>
+          인증 로직 구현 시 <strong>MCP로 Supabase Auth API</strong>를 직접 호출하여 동작 확인.
+        </p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag-skill">subagent-driven-dev</span>
+          <span class="tl-tag tl-tag-skill">test-driven-dev</span>
+          <span class="tl-tag tl-tag-agent">implementer (서브에이전트)</span>
+          <span class="tl-tag tl-tag-agent">code-reviewer (에이전트)</span>
+          <span class="tl-tag tl-tag-hook">PostToolUse (자동 포맷팅)</span>
+          <span class="tl-tag tl-tag-mcp">Supabase Auth</span>
+          <span class="tl-tag tl-tag-tool">Read, Write, Edit, Bash</span>
+        </div>
+      </div>
+
+      <!-- Phase 3.5 -->
+      <div class="tl-item">
+        <div class="tl-phase" style="color:var(--team)">Phase 3.5 &mdash; 대규모 병렬 작업</div>
+        <h4>Team으로 독립 서브시스템 동시 개발</h4>
+        <p>
+          인증, 차트, 알림 3개 서브시스템은 독립적 → <strong>Team</strong> 생성.<br>
+          Agent A (인증), Agent B (차트), Agent C (알림)에게 각각 태스크 할당.<br>
+          공유 태스크 리스트로 진행 상황 추적. blockedBy로 의존성 관리 (알림은 인증 완료 후).<br>
+          SendMessage로 에이전트 간 인터페이스 조율 ("User 타입 정의를 이렇게 했으니 맞춰달라").
+        </p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag-team">Team 생성</span>
+          <span class="tl-tag tl-tag-agent">Agent A/B/C</span>
+          <span class="tl-tag tl-tag-team">Task List (blockedBy)</span>
+          <span class="tl-tag tl-tag-team">SendMessage</span>
+        </div>
+      </div>
+
+      <!-- Phase 4 -->
+      <div class="tl-item">
+        <div class="tl-phase" style="color:var(--hook)">Phase 4 &mdash; 디버깅</div>
+        <h4>차트 렌더링 버그 발견</h4>
+        <p>
+          실시간 차트에서 데이터 누락 버그 발견 → <strong>systematic-debugging</strong> 스킬 자동 트리거.<br>
+          4단계 수행: 근본 원인 조사 → 패턴 분석 → 가설 테스트 → 수정 구현.<br>
+          <strong>MCP로 Sentry</strong>에서 에러 로그 조회, <strong>Supabase</strong>에서 실제 데이터 확인.<br>
+          수정 전 <strong>verification-before-completion</strong> 스킬로 실제 증거 확보 후 완료 선언.
+        </p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag-skill">systematic-debugging</span>
+          <span class="tl-tag tl-tag-skill">verification-before-completion</span>
+          <span class="tl-tag tl-tag-mcp">Sentry (에러 로그)</span>
+          <span class="tl-tag tl-tag-mcp">Supabase (데이터 확인)</span>
+          <span class="tl-tag tl-tag-memory">버그 패턴 기록</span>
+        </div>
+      </div>
+
+      <!-- Phase 5 -->
+      <div class="tl-item">
+        <div class="tl-phase" style="color:var(--agent)">Phase 5 &mdash; 리뷰 &amp; 통합</div>
+        <h4>전체 코드 리뷰 + 브랜치 머지</h4>
+        <p>
+          <strong>requesting-code-review</strong> 스킬 → <strong>code-reviewer</strong> 에이전트가 전체 diff 분석.<br>
+          Critical 이슈 0건, Important 2건 → 수정 후 재리뷰.<br>
+          <strong>finishing-a-development-branch</strong> 스킬 → 테스트 통과 확인 → "Push + PR 생성" 선택.<br>
+          <strong>MCP로 GitHub</strong>에 PR 생성, <strong>Slack</strong>에 팀 알림 전송.
+        </p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag-skill">requesting-code-review</span>
+          <span class="tl-tag tl-tag-skill">finishing-branch</span>
+          <span class="tl-tag tl-tag-agent">code-reviewer</span>
+          <span class="tl-tag tl-tag-mcp">GitHub (PR 생성)</span>
+          <span class="tl-tag tl-tag-mcp">Slack (팀 알림)</span>
+          <span class="tl-tag tl-tag-tool">Bash (git push)</span>
+        </div>
+      </div>
+
+      <!-- Phase 6 -->
+      <div class="tl-item">
+        <div class="tl-phase" style="color:var(--memory)">Phase 6 &mdash; 회고</div>
+        <h4>프로젝트 학습 사항 저장</h4>
+        <p>
+          <strong>Memory</strong>에 프로젝트 결정 사항, 발견한 패턴, 사용자 피드백 저장.<br>
+          "Supabase RLS 정책은 항상 먼저 설정할 것" (feedback 메모리).<br>
+          "차트는 SSR이 아닌 CSR로" (project 메모리).<br>
+          다음 대화에서 이 모든 컨텍스트가 자동으로 로드된다.
+        </p>
+        <div class="tl-tags">
+          <span class="tl-tag tl-tag-memory">feedback 저장</span>
+          <span class="tl-tag tl-tag-memory">project 결정 저장</span>
+          <span class="tl-tag tl-tag-memory">reference 저장</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CONCEPT USAGE SUMMARY -->
+    <div class="detail-block" style="margin-top:40px;">
+      <div class="detail-header">
+        <h3>시나리오 요약: 각 개념의 역할</h3>
+      </div>
+      <div class="detail-body">
+        <div style="overflow-x:auto;">
+          <table class="comp-table">
+            <thead>
+              <tr>
+                <th>개념</th>
+                <th>이 프로젝트에서의 역할</th>
+                <th>없었다면?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="dot" style="background:var(--plugin)"></span>Plugin</td>
+                <td>superpowers 한 번 설치로 전체 워크플로우 확보</td>
+                <td>14개 스킬을 하나씩 수동 설정해야 함</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--skill)"></span>Skill</td>
+                <td>설계→계획→TDD→리뷰 프로세스 자동 적용</td>
+                <td>매번 "테스트 먼저 써줘" 직접 지시해야 함</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--tool)"></span>Tool</td>
+                <td>파일 읽기/쓰기/검색/명령 실행의 기본 수단</td>
+                <td>Claude가 아무것도 할 수 없음</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--agent)"></span>Agent</td>
+                <td>구현자, 리뷰어를 격리하여 편향 없는 작업</td>
+                <td>자기가 쓴 코드를 자기가 리뷰 (편향)</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--mcp)"></span>MCP</td>
+                <td>Supabase/GitHub/Slack/Sentry와 직접 통신</td>
+                <td>"API 키 넣고 curl 해줘" 수동 반복</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--team)"></span>Team</td>
+                <td>인증/차트/알림 3개 서브시스템 동시 개발</td>
+                <td>순차 개발 → 3배 느림</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--hook)"></span>Hook</td>
+                <td>매 편집마다 자동 포맷팅/린팅</td>
+                <td>"Prettier 돌려줘" 매번 요청</td>
+              </tr>
+              <tr>
+                <td><span class="dot" style="background:var(--memory)"></span>Memory</td>
+                <td>결정 사항/피드백이 다음 세션에 이어짐</td>
+                <td>매 대화마다 "우리 스택은..." 반복 설명</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 6. FAQ ==================== -->
+<section id="faq">
+  <div class="container">
+    <div class="section-label" style="color:var(--memory)">06</div>
+    <h2 class="section-title">자주 묻는 질문</h2>
+
+    <div class="detail-block">
+      <div class="detail-body">
+
+        <h4 style="margin-bottom:8px;">Q. Skill도 결국 Agent 아닌가?</h4>
+        <p>
+          개념적으로는 맞다. 둘 다 "Claude의 능력을 확장"한다. 하지만 구현 관점에서 결정적 차이가 있다:<br>
+          <strong>Skill</strong> = 메인 Claude의 행동을 바꾸는 프롬프트 주입 (같은 컨텍스트)<br>
+          <strong>Agent</strong> = 새로운 Claude 인스턴스를 생성 (별도 컨텍스트)<br>
+          Skill은 "네가 이렇게 해", Agent는 "다른 사람한테 맡겨".
+        </p>
+
+        <h4 style="margin-top:24px; margin-bottom:8px;">Q. MCP Tool과 내장 Tool의 차이는?</h4>
+        <p>
+          <strong>내장 Tool</strong> = 로컬 파일 시스템과 상호작용 (Read, Write, Bash 등). 항상 사용 가능.<br>
+          <strong>MCP Tool</strong> = 외부 서비스와 상호작용 (DB, API, Slack 등). .mcp.json에 등록해야 사용 가능.<br>
+          내장 Tool이 "손", MCP Tool이 "전화기"라고 보면 된다.
+        </p>
+
+        <h4 style="margin-top:24px; margin-bottom:8px;">Q. Hook과 Skill 둘 다 자동으로 실행되는데 뭐가 다른가?</h4>
+        <p>
+          <strong>Skill</strong> = Claude의 판단으로 트리거 ("이 상황에 이 스킬이 적합하다")<br>
+          <strong>Hook</strong> = 이벤트 기반 무조건 트리거 ("Edit이 실행되면 무조건 Prettier 실행")<br>
+          Skill은 유연한 판단, Hook은 기계적 강제 실행.
+        </p>
+
+        <h4 style="margin-top:24px; margin-bottom:8px;">Q. Team과 dispatching-parallel-agents의 차이는?</h4>
+        <p>
+          <strong>dispatching-parallel-agents</strong> = 일회성 병렬 실행. 결과 받고 끝.<br>
+          <strong>Team</strong> = 지속적 협업 구조. 태스크 큐, 의존성 관리, 메시지 소통이 가능.<br>
+          간단한 병렬 작업은 dispatching, 복잡한 협업은 Team.
+        </p>
+
+        <h4 style="margin-top:24px; margin-bottom:8px;">Q. Plugin 없이도 Skill을 사용할 수 있는가?</h4>
+        <p>
+          가능하다. CLAUDE.md에 직접 지시를 작성하거나, 프로젝트 내 .claude/skills/ 디렉토리에 SKILL.md를 넣으면 된다.
+          Plugin은 "잘 만들어진 Skill 묶음을 쉽게 설치"하는 배포 수단일 뿐.
+        </p>
+
+        <h4 style="margin-top:24px; margin-bottom:8px;">Q. Memory와 CLAUDE.md의 차이는?</h4>
+        <p>
+          <strong>CLAUDE.md</strong> = 사용자가 직접 작성하는 고정 지시문. 버전 관리됨. "이렇게 일해라".<br>
+          <strong>Memory</strong> = Claude가 대화에서 학습하여 자동 저장. "이전에 이런 얘기를 했었다".<br>
+          CLAUDE.md는 규칙, Memory는 기억.
+        </p>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Claude Code Concepts Atlas &middot; 2026-03-28 &middot; Built for docs/Joe/claude-concepts
+</footer>
+
+</body>
+</html>
